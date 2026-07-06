@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gallery — Hook Et</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* PAGE */
+    .gallery-main{max-width:1100px;margin:0 auto;padding:3rem 1.5rem 6rem}
+    .gallery-hero{text-align:center;margin-bottom:2.5rem}
+    .gallery-hero h1{margin:.5rem 0 .8rem}
+    .gallery-hero p{color:var(--muted);font-size:1.05rem;max-width:500px;margin:0 auto}
+
+    /* FILTER PILLS */
+    .filter-bar{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;margin-bottom:2rem}
+    .filter-pill{padding:.4rem 1.1rem;border-radius:50px;border:2px solid var(--peach);background:transparent;font-family:'Nunito',sans-serif;font-weight:800;font-size:.85rem;cursor:pointer;transition:all .15s;color:var(--charcoal)}
+    .filter-pill:hover{border-color:var(--amber);color:var(--amber)}
+    .filter-pill.active{background:var(--amber);border-color:var(--amber);color:#fff}
+
+    /* MASONRY-STYLE GRID */
+    .gallery-grid{
+      columns:3;column-gap:1rem;
+    }
+    .gallery-card{
+      break-inside:avoid;
+      margin-bottom:1rem;
+      border-radius:var(--radius);
+      overflow:hidden;
+      background:#fff;
+      box-shadow:var(--shadow);
+      cursor:pointer;
+      transition:transform .2s,box-shadow .2s;
+      position:relative;
+    }
+    .gallery-card:hover{transform:translateY(-4px);box-shadow:0 10px 32px rgba(45,32,23,.15)}
+    .gallery-card img{width:100%;display:block;transition:transform .3s}
+    .gallery-card:hover img{transform:scale(1.03)}
+    .gallery-card .g-label{
+      padding:.65rem .9rem;
+      font-weight:800;font-size:.88rem;color:var(--charcoal);
+      background:#fff;
+    }
+    .gallery-card .g-tag{
+      display:inline-block;font-size:.72rem;font-weight:800;
+      background:var(--blush);color:var(--muted);
+      padding:.15rem .6rem;border-radius:50px;margin-top:.2rem;
+    }
+
+    /* EMPTY STATE */
+    .gallery-empty{text-align:center;padding:5rem 2rem;color:var(--muted);grid-column:1/-1}
+    .gallery-empty div{font-size:3.5rem;margin-bottom:1rem}
+
+    /* LIGHTBOX */
+    .g-lightbox{
+      display:none;position:fixed;inset:0;
+      background:rgba(10,8,6,.92);
+      z-index:900;
+      align-items:center;justify-content:center;
+      flex-direction:column;
+      padding:1rem;
+    }
+    .g-lightbox.open{display:flex}
+    .g-lightbox-img-wrap{
+      position:relative;max-width:90vw;max-height:80vh;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .g-lightbox-img-wrap img{
+      max-width:90vw;max-height:78vh;
+      border-radius:16px;
+      object-fit:contain;
+      box-shadow:0 20px 60px rgba(0,0,0,.5);
+      transition:transform .2s;
+    }
+    .g-lightbox-info{
+      margin-top:1rem;text-align:center;
+      background:rgba(45,32,23,.75);
+      padding:.6rem 1.5rem;border-radius:50px;
+    }
+    .g-lightbox-label{font-family:'Fredoka One',cursive;font-size:1.1rem;color:#fff}
+    .g-lightbox-tag{font-size:.8rem;color:var(--peach);margin-left:.5rem;font-weight:700}
+    .g-lightbox-counter{font-size:.78rem;color:rgba(255,255,255,.55);margin-top:.2rem}
+
+    /* Lightbox nav */
+    .g-lb-btn{
+      position:fixed;top:50%;
+      background:rgba(255,255,255,.15);
+      border:none;border-radius:50%;
+      width:46px;height:46px;font-size:1.4rem;
+      cursor:pointer;color:#fff;
+      transition:background .15s;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .g-lb-btn:hover{background:rgba(255,255,255,.3)}
+    .g-lb-prev{left:1rem;transform:translateY(-50%)}
+    .g-lb-next{right:1rem;transform:translateY(-50%)}
+    .g-lb-close{
+      position:fixed;top:1rem;right:1rem;
+      background:rgba(255,255,255,.2);border:none;border-radius:50%;
+      width:40px;height:40px;font-size:1.1rem;cursor:pointer;
+      color:#fff;line-height:40px;text-align:center;
+      transition:background .15s;
+    }
+    .g-lb-close:hover{background:rgba(255,255,255,.35)}
+
+    @media(max-width:768px){.gallery-grid{columns:2}}
+    @media(max-width:480px){.gallery-grid{columns:1}}
+  </style>
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo"><span class="yarn-icon">🧶</span> Hook Et</a>
+      <nav class="nav-links">
+        <a href="shop.html">Shop</a>
+        <a href="custom.html">Custom Order</a>
+        <a href="gallery.html" style="color:var(--amber)">Gallery</a>
+        <a href="index.html#about">About</a>
+      </nav>
+      <button class="hamburger" id="hamburger">☰</button>
+    </div>
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="shop.html">Shop</a>
+      <a href="custom.html">Custom Order</a>
+      <a href="gallery.html">Gallery</a>
+      <a href="index.html#about">About</a>
+    </div>
+  </header>
+
+  <main class="gallery-main">
+    <div class="gallery-hero">
+      <div class="section-label">Our Work</div>
+      <h1>Hook Et Gallery 📸</h1>
+      <p>A look at some of our finished crochet pieces. Click any photo to zoom in!</p>
+    </div>
+
+    <!-- FILTER BAR (tags generated dynamically) -->
+    <div class="filter-bar" id="filterBar">
+      <button class="filter-pill active" data-tag="all" onclick="filterGallery('all',this)">All</button>
+    </div>
+
+    <!-- GALLERY GRID -->
+    <div class="gallery-grid" id="galleryGrid"></div>
+  </main>
+
+  <!-- LIGHTBOX -->
+  <div class="g-lightbox" id="gLightbox">
+    <button class="g-lb-close" onclick="closeLightbox()">✕</button>
+    <button class="g-lb-btn g-lb-prev" onclick="shiftLightbox(-1)">‹</button>
+    <div>
+      <div class="g-lightbox-img-wrap">
+        <img id="lbImg" src="" alt="" />
+      </div>
+      <div class="g-lightbox-info">
+        <div>
+          <span class="g-lightbox-label" id="lbLabel"></span>
+          <span class="g-lightbox-tag" id="lbTag"></span>
+        </div>
+        <div class="g-lightbox-counter" id="lbCounter"></div>
+      </div>
+    </div>
+    <button class="g-lb-btn g-lb-next" onclick="shiftLightbox(1)">›</button>
+  </div>
+
+  <!-- Secret admin dot -->
+  <a href="admin.html" aria-hidden="true" tabindex="-1"
+     style="position:fixed;bottom:6px;left:6px;width:8px;height:8px;border-radius:50%;background:rgba(200,200,200,0.18);display:block;z-index:9999;cursor:default;"></a>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand"><span class="yarn-icon">🧶</span><span class="footer-name">Hook Et</span><p>Handmade crochet from Cebu 🇵🇭</p></div>
+      <div class="footer-links"><a href="index.html">Home</a><a href="shop.html">Shop</a><a href="custom.html">Custom Order</a></div>
+    </div>
+    <div class="footer-bottom"><p>© 2024 Hook Et. Made with 🧡 and lots of yarn.</p></div>
+  </footer>
+
+  <script>
+    let allPhotos    = [];
+    let filtered     = [];
+    let currentIndex = 0;
+
+    /* ── LOAD & RENDER ── */
+    function getPhotos() {
+      return JSON.parse(localStorage.getItem('hooket_gallery') || '[]');
+    }
+
+    function renderGallery(photos) {
+      filtered = photos;
+      const grid = document.getElementById('galleryGrid');
+      if (!photos.length) {
+        grid.innerHTML = '<div class="gallery-empty"><div>📷</div><p>No photos yet — check back soon!</p></div>';
+        return;
+      }
+      grid.innerHTML = photos.map((p, i) => `
+        <div class="gallery-card" onclick="openLightbox(${i})">
+          <img src="${p.image}" alt="${p.label || 'Crochet work'}" loading="lazy" />
+          <div class="g-label">
+            ${p.label || 'Hook Et'}
+            ${p.tag ? `<div><span class="g-tag">${p.tag}</span></div>` : ''}
+          </div>
+        </div>`).join('');
+    }
+
+    function buildFilters(photos) {
+      const tags = [...new Set(photos.map(p => p.tag).filter(Boolean))];
+      const bar  = document.getElementById('filterBar');
+      // Keep "All" pill, add tag pills
+      bar.innerHTML = `<button class="filter-pill active" data-tag="all" onclick="filterGallery('all',this)">All</button>`;
+      tags.forEach(tag => {
+        bar.innerHTML += `<button class="filter-pill" data-tag="${tag}" onclick="filterGallery('${tag}',this)">${tag}</button>`;
+      });
+    }
+
+    function filterGallery(tag, btn) {
+      document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      const photos = tag === 'all' ? allPhotos : allPhotos.filter(p => p.tag === tag);
+      renderGallery(photos);
+    }
+
+    /* ── LIGHTBOX ── */
+    function openLightbox(idx) {
+      currentIndex = idx;
+      showLightboxPhoto();
+      document.getElementById('gLightbox').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeLightbox() {
+      document.getElementById('gLightbox').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    function showLightboxPhoto() {
+      const p = filtered[currentIndex];
+      document.getElementById('lbImg').src      = p.image;
+      document.getElementById('lbLabel').textContent = p.label || 'Hook Et';
+      document.getElementById('lbTag').textContent   = p.tag   ? '#' + p.tag : '';
+      document.getElementById('lbCounter').textContent = (currentIndex + 1) + ' / ' + filtered.length;
+    }
+    function shiftLightbox(dir) {
+      currentIndex = (currentIndex + dir + filtered.length) % filtered.length;
+      showLightboxPhoto();
+    }
+    // Keyboard nav
+    document.addEventListener('keydown', e => {
+      if (!document.getElementById('gLightbox').classList.contains('open')) return;
+      if (e.key === 'ArrowRight') shiftLightbox(1);
+      if (e.key === 'ArrowLeft')  shiftLightbox(-1);
+      if (e.key === 'Escape')     closeLightbox();
+    });
+    // Click backdrop to close
+    document.getElementById('gLightbox').addEventListener('click', e => {
+      if (e.target === document.getElementById('gLightbox')) closeLightbox();
+    });
+
+    /* ── INIT ── */
+    allPhotos = getPhotos();
+    buildFilters(allPhotos);
+    renderGallery(allPhotos);
+
+    document.getElementById('hamburger').addEventListener('click', () =>
+      document.getElementById('mobileMenu').classList.toggle('open'));
+  </script>
+</body>
+</html>

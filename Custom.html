@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Custom Order — Hook Et</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    .custom-main{max-width:700px;margin:0 auto;padding:3rem 1.5rem 5rem}
+    .custom-hero{text-align:center;margin-bottom:2.5rem}
+    .custom-hero h1{margin:.5rem 0 .8rem}
+    .custom-hero p{color:var(--muted)}
+    .custom-form{background:var(--white);border-radius:var(--radius);padding:2.5rem;box-shadow:var(--shadow)}
+    .fg{margin-bottom:1.1rem;display:flex;flex-direction:column;gap:.35rem}
+    .fg label{font-weight:800;font-size:.9rem;color:var(--charcoal)}
+    .fg input,.fg textarea,.fg select{border:2px solid var(--peach);border-radius:var(--radius-sm);padding:.65rem 1rem;font-family:'Nunito',sans-serif;font-size:.95rem;outline:none;transition:border-color .15s;background:var(--cream)}
+    .fg input:focus,.fg textarea:focus,.fg select:focus{border-color:var(--amber)}
+    .form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+    .submit-wrap{text-align:center;margin-top:1.5rem}
+    .submit-wrap .btn{padding:1rem 3rem;font-size:1.05rem}
+    .success-msg{display:none;text-align:center;padding:2rem}
+    .success-msg h2{color:var(--amber);margin-bottom:.5rem}
+    .budget-note{font-size:.8rem;color:var(--muted);margin-top:.25rem}
+    @media(max-width:560px){.form-row-2{grid-template-columns:1fr}}
+
+    /* ── REFERENCE PHOTO UPLOAD ── */
+    .ref-upload-label{font-weight:800;font-size:.9rem;color:var(--charcoal);display:block;margin-bottom:.4rem}
+    .ref-upload-hint{font-size:.78rem;color:var(--muted);margin-bottom:.7rem;display:block}
+    .ref-drop-zone{
+      border:2.5px dashed var(--peach);border-radius:var(--radius-sm);
+      background:var(--cream);padding:1.4rem 1rem;
+      text-align:center;cursor:pointer;
+      transition:border-color .2s,background .2s;
+      margin-bottom:.7rem;
+    }
+    .ref-drop-zone:hover,.ref-drop-zone.drag-over{border-color:var(--amber);background:#fff}
+    .ref-drop-zone .dz-icon{font-size:2rem;margin-bottom:.4rem}
+    .ref-drop-zone .dz-text{font-weight:800;font-size:.88rem;color:var(--charcoal)}
+    .ref-drop-zone .dz-sub{font-size:.76rem;color:var(--muted);margin-top:.2rem}
+    /* Preview grid */
+    .ref-preview-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.7rem;margin-bottom:.4rem}
+    .ref-thumb{position:relative;border-radius:var(--radius-sm);overflow:hidden;aspect-ratio:1;background:var(--blush)}
+    .ref-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .ref-thumb .thumb-del{
+      position:absolute;top:.3rem;right:.3rem;
+      background:rgba(45,32,23,.7);color:#fff;
+      border:none;border-radius:50%;width:22px;height:22px;
+      font-size:.7rem;line-height:22px;cursor:pointer;
+      font-weight:800;text-align:center;
+    }
+    .ref-thumb .thumb-del:hover{background:rgba(200,0,0,.8)}
+    .ref-count-note{font-size:.76rem;color:var(--muted)}
+    .ref-section{margin-bottom:1.1rem;padding:1.1rem;background:var(--white);border:2px solid var(--peach);border-radius:var(--radius-sm)}
+
+
+    /* ═══ CELEBRATION ═══ */
+    .celebrate-overlay{position:fixed;inset:0;z-index:800;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity .4s}
+    .celebrate-overlay.show{opacity:1;pointer-events:all}
+    .celebrate-backdrop{position:absolute;inset:0;background:rgba(45,32,23,.55);backdrop-filter:blur(6px)}
+    .celebrate-card{position:relative;z-index:2;background:#fff;border-radius:28px;padding:3rem 2.5rem 2.5rem;text-align:center;max-width:400px;width:90%;box-shadow:0 24px 60px rgba(45,32,23,.25);transform:scale(.8);transition:transform .45s cubic-bezier(.34,1.56,.64,1)}
+    .celebrate-overlay.show .celebrate-card{transform:scale(1)}
+    .celebrate-big-emoji{font-size:4rem;line-height:1;margin-bottom:.8rem;animation:bounceIn .6s .3s both}
+    @keyframes bounceIn{0%{transform:scale(0) rotate(-10deg);opacity:0}60%{transform:scale(1.2) rotate(4deg)}100%{transform:scale(1) rotate(0);opacity:1}}
+    .celebrate-card h2{font-family:'Fredoka One',cursive;font-size:2rem;color:var(--charcoal);margin-bottom:.5rem}
+    .celebrate-card .thank-sub{font-size:1rem;color:var(--muted);line-height:1.6;margin-bottom:1.5rem}
+    .celebrate-card .thank-name{font-family:'Fredoka One',cursive;color:var(--amber);font-size:1.1rem}
+    .celebrate-close-btn{background:var(--amber);color:#fff;border:none;border-radius:50px;padding:.75rem 2rem;font-family:'Nunito',sans-serif;font-weight:800;font-size:1rem;cursor:pointer;transition:transform .15s,filter .15s}
+    .celebrate-close-btn:hover{transform:translateY(-2px);filter:brightness(.92)}
+    .flower-piece{position:fixed;top:-60px;font-size:1.6rem;z-index:801;pointer-events:none;animation:flowerFall linear forwards;user-select:none}
+    @keyframes flowerFall{0%{transform:translateY(0) rotate(0deg) scale(1);opacity:1}80%{opacity:1}100%{transform:translateY(110vh) rotate(720deg) scale(.6);opacity:0}}
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo"><span class="yarn-icon">🧶</span> Hook Et</a>
+      <nav class="nav-links">
+        <a href="shop.html">Shop</a>
+        <a href="custom.html" style="color:var(--amber)">Custom Order</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="index.html#about">About</a>
+      </nav>
+      <button class="hamburger" id="hamburger">☰</button>
+    </div>
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="shop.html">Shop</a>
+      <a href="custom.html">Custom Order</a>
+      <a href="index.html#about">About</a>
+    </div>
+  </header>
+
+  <main class="custom-main">
+    <div class="custom-hero">
+      <div class="section-label">Custom Orders</div>
+      <h1>Let's Make Something Special 🎨</h1>
+      <p>Tell me what you have in mind and I'll bring it to life with yarn! Orders take 4–7 days depending on size.</p>
+    </div>
+
+    <div class="custom-form">
+      <form id="customForm">
+
+        <!-- Contact Info -->
+        <div style="margin-bottom:1.2rem">
+          <div class="section-label" style="margin-bottom:.8rem">Your Info</div>
+          <div class="form-row-2">
+            <div class="fg">
+              <label>Your Name *</label>
+              <input type="text" id="cName" placeholder="Maria Santos" required />
+            </div>
+            <div class="fg">
+              <label>Quantity *</label>
+              <input type="number" id="cQty" min="1" max="50" value="1" required />
+            </div>
+          </div>
+          <div class="fg">
+            <label>Facebook Page / Profile *</label>
+            <input type="text" id="cFB" placeholder="e.g. facebook.com/mariasantos or @mariasantos" required />
+          </div>
+          <div class="form-row-2">
+            <div class="fg">
+              <label>Instagram (optional)</label>
+              <input type="text" id="cIG" placeholder="@yourusername" />
+            </div>
+            <div class="fg">
+              <label>Phone / Other Contact</label>
+              <input type="text" id="cPhone" placeholder="09xx-xxx-xxxx" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Order Details -->
+        <div style="margin-bottom:1.2rem">
+          <div class="section-label" style="margin-bottom:.8rem">Order Details</div>
+          <div class="fg">
+            <label>What would you like? *</label>
+            <select id="cType" required>
+              <option value="">— Pick a category —</option>
+              <option>Amigurumi / Plushie</option>
+              <option>Bag or Tote</option>
+              <option>Bouquet / Flowers</option>
+              <option>Accessory (keychain, cozy, etc.)</option>
+              <option>Wearable (hat, scarf, etc.)</option>
+              <option>Other (describe below)</option>
+            </select>
+          </div>
+          <div class="form-row-2">
+            <div class="fg">
+              <label>Color(s)</label>
+              <input type="text" id="cColor" placeholder="e.g. Pastel pink, sage, cream" />
+            </div>
+            <div class="fg">
+              <label>Size</label>
+              <input type="text" id="cSize" placeholder="e.g. Small, palm-sized" />
+            </div>
+          </div>
+          <div class="fg">
+            <label>Describe your request *</label>
+            <textarea id="cDesc" rows="4" placeholder="The more detail the better! Attach a reference photo via FB/IG if you have one 🌸" required></textarea>
+          </div>
+          <div class="fg ref-section">
+            <label class="ref-upload-label">📷 Reference Photos <span style="font-weight:400;color:var(--muted)">(optional, up to 3)</span></label>
+            <span class="ref-upload-hint">Upload photos that show what you'd like — a character, style, color, or design you love. The owner will see these when reviewing your request.</span>
+
+            <!-- Preview grid (hidden when empty) -->
+            <div class="ref-preview-grid" id="refPreviewGrid" style="display:none"></div>
+            <span class="ref-count-note" id="refCountNote"></span>
+
+            <!-- Drop zone (hidden when 3 photos uploaded) -->
+            <div class="ref-drop-zone" id="refDropZone"
+                 onclick="document.getElementById('refFileInput').click()"
+                 ondragover="handleDragOver(event)"
+                 ondragleave="handleDragLeave(event)"
+                 ondrop="handleDrop(event)">
+              <div class="dz-icon">📸</div>
+              <div class="dz-text">Click to upload or drag & drop</div>
+              <div class="dz-sub">PNG, JPG, WEBP — max 3 photos</div>
+            </div>
+            <input type="file" id="refFileInput" accept="image/*" multiple style="display:none" onchange="handleRefFiles(event)" />
+          </div>
+          <div class="fg">
+            <label>Budget (optional)</label>
+            <input type="text" id="cBudget" placeholder="e.g. ₱300–₱500" />
+            <span class="budget-note">Helps me suggest the best option within your range.</span>
+          </div>
+        </div>
+
+        <!-- Timing -->
+        <div>
+          <div class="section-label" style="margin-bottom:.8rem">Timing & Notes</div>
+          <div class="fg">
+            <label>When do you need it? *</label>
+            <input type="date" id="cDate" required />
+          </div>
+          <div class="fg">
+            <label>Comments / Special Requests</label>
+            <textarea id="cNotes" rows="3" placeholder="Gift wrapping, delivery preference, or anything else..."></textarea>
+          </div>
+        </div>
+
+        <div class="submit-wrap">
+          <button type="submit" class="btn btn-primary">Send Request 💛</button>
+        </div>
+      </form>
+
+      <div class="success-msg" id="successMsg">
+        <div style="font-size:3rem">🧡</div>
+        <h2>Request sent!</h2>
+        <p style="color:var(--muted)">Thank you! I'll reach out to you via Facebook within 24 hours to discuss details, timeline, and pricing.</p>
+        <a href="index.html" class="btn btn-outline" style="margin-top:1.5rem">Back to Home</a>
+      </div>
+    </div>
+  </main>
+
+
+  <!-- CELEBRATION OVERLAY -->
+  <div class="celebrate-overlay" id="celebrateOverlay">
+    <div class="celebrate-backdrop" onclick="closeCelebration()"></div>
+    <div class="celebrate-card">
+      <div class="celebrate-big-emoji">🌸</div>
+      <h2>Request Sent! 🧡</h2>
+      <p class="thank-sub">
+        Your custom order request is in,
+        <span class="thank-name" id="thankName"></span>!<br><br>
+        The owner will reach out via <strong>Facebook</strong>
+        within 24 hours to discuss details, timeline, and pricing. 💛
+      </p>
+      <p style="font-size:.82rem;color:var(--muted);margin-bottom:1.2rem">
+        🌷 Thank you for supporting Hook Et — handmade with love! 🌷
+      </p>
+      <button class="celebrate-close-btn" onclick="closeCelebration()">
+        Can't wait! 🎉
+      </button>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand"><span class="yarn-icon">🧶</span><span class="footer-name">Hook Et</span><p>Handmade crochet from Cebu 🇵🇭</p></div>
+      <div class="footer-links"><a href="index.html">Home</a><a href="shop.html">Shop</a><a href="gallery.html">Gallery</a></div>
+    </div>
+    <div class="footer-bottom"><p>© 2024 Hook Et. Made with 🧡 and lots of yarn.</p></div>
+  </footer>
+
+  <!-- Secret admin dot -->
+  <a href="admin.html" aria-hidden="true" tabindex="-1"
+     style="position:fixed;bottom:6px;left:6px;width:8px;height:8px;border-radius:50%;background:rgba(200,200,200,0.18);display:block;z-index:9999;cursor:default;"></a>
+
+  <script>
+    document.getElementById('customForm').onsubmit = function(e) {
+      e.preventDefault();
+      const order = {
+        id:       Date.now(),
+        type:     'custom',
+        emoji:    '🎨',
+        category: document.getElementById('cType').value,
+        desc:     document.getElementById('cDesc').value.trim(),
+        color:    document.getElementById('cColor').value.trim(),
+        size:     document.getElementById('cSize').value.trim(),
+        budget:   document.getElementById('cBudget').value.trim(),
+        qty:      parseInt(document.getElementById('cQty').value) || 1,
+        total:    null, // set by owner after discussion
+        name:     document.getElementById('cName').value.trim(),
+        fb:       document.getElementById('cFB').value.trim(),
+        ig:       document.getElementById('cIG').value.trim(),
+        phone:    document.getElementById('cPhone').value.trim(),
+        deadline: document.getElementById('cDate').value,
+        notes:    document.getElementById('cNotes').value.trim(),
+        refImages: refImages.slice(), // reference photos as base64
+        placedAt: new Date().toLocaleString('en-PH'),
+        status:   'Pending'
+      };
+      const orders = JSON.parse(localStorage.getItem('hooket_orders') || '[]');
+      orders.push(order);
+      localStorage.setItem('hooket_orders', JSON.stringify(orders));
+      const cName = document.getElementById('cName').value.trim();
+      document.getElementById('customForm').style.display = 'none';
+      document.getElementById('successMsg').style.display = 'block';
+      showCelebration(cName);
+    };
+
+
+    /* ── REFERENCE PHOTO UPLOAD ── */
+    let refImages = []; // array of base64 strings, max 3
+
+    function handleRefFiles(e) {
+      const files = Array.from(e.target.files);
+      loadRefFiles(files);
+      e.target.value = ''; // reset so same file can be re-added if removed
+    }
+    function handleDragOver(e) {
+      e.preventDefault();
+      document.getElementById('refDropZone').classList.add('drag-over');
+    }
+    function handleDragLeave(e) {
+      document.getElementById('refDropZone').classList.remove('drag-over');
+    }
+    function handleDrop(e) {
+      e.preventDefault();
+      document.getElementById('refDropZone').classList.remove('drag-over');
+      const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+      loadRefFiles(files);
+    }
+
+    function loadRefFiles(files) {
+      const remaining = 3 - refImages.length;
+      if (remaining <= 0) { showRefToast('Maximum 3 photos reached.'); return; }
+      const toLoad = files.slice(0, remaining);
+      toLoad.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          refImages.push(ev.target.result);
+          renderRefPreviews();
+        };
+        reader.readAsDataURL(file);
+      });
+      if (files.length > remaining) showRefToast('Only ' + remaining + ' more photo(s) allowed. Extra ones were ignored.');
+    }
+
+    function renderRefPreviews() {
+      const grid  = document.getElementById('refPreviewGrid');
+      const zone  = document.getElementById('refDropZone');
+      const note  = document.getElementById('refCountNote');
+
+      grid.innerHTML = '';
+      if (refImages.length > 0) {
+        grid.style.display = 'grid';
+        refImages.forEach((src, idx) => {
+          const thumb = document.createElement('div');
+          thumb.className = 'ref-thumb';
+          thumb.innerHTML =
+            '<img src="' + src + '" alt="Reference ' + (idx+1) + '" style="width:100%;height:100%;object-fit:cover;display:block;" />' +
+            '<button class="thumb-del" type="button" onclick="removeRefImage(' + idx + ')" title="Remove">✕</button>';
+        });
+        note.textContent = refImages.length + '/3 photo' + (refImages.length > 1 ? 's' : '') + ' added';
+      } else {
+        grid.style.display = 'none';
+        note.textContent = '';
+      }
+
+      // Hide drop zone when maxed out
+      zone.style.display = refImages.length >= 3 ? 'none' : 'block';
+    }
+
+    function removeRefImage(idx) {
+      refImages.splice(idx, 1);
+      renderRefPreviews();
+    }
+
+    function showRefToast(msg) {
+      const t = document.createElement('div');
+      t.style.cssText = 'position:fixed;bottom:5rem;left:50%;transform:translateX(-50%);background:var(--charcoal);color:#fff;padding:.7rem 1.4rem;border-radius:50px;font-weight:700;font-size:.85rem;z-index:999;white-space:nowrap;opacity:0;transition:opacity .3s';
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.style.opacity = '1', 10);
+      setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
+    }
+
+    /* ── CELEBRATION ── */
+    const FLOWERS = ['🌸','🌷','🌺','🌻','💐','🌹','🌼','✨','🪷','💮'];
+    let flowerInterval = null;
+
+    function showCelebration(name) {
+      document.getElementById('thankName').textContent = name || 'friend';
+      document.getElementById('celebrateOverlay').classList.add('show');
+      let count = 0;
+      flowerInterval = setInterval(() => {
+        spawnFlower(); count++;
+        if (count > 60) { clearInterval(flowerInterval); flowerInterval = null; }
+      }, 120);
+      for (let i = 0; i < 12; i++) setTimeout(spawnFlower, i * 60);
+    }
+    function spawnFlower() {
+      const el = document.createElement('div');
+      el.className = 'flower-piece';
+      el.textContent = FLOWERS[Math.floor(Math.random() * FLOWERS.length)];
+      el.style.left = (Math.random() * 100) + 'vw';
+      el.style.fontSize = (1.2 + Math.random() * 1.6) + 'rem';
+      const dur = 2.5 + Math.random() * 2.5;
+      el.style.animationDuration = dur + 's';
+      el.style.animationDelay = (Math.random() * 0.8) + 's';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), (dur + 1) * 1000);
+    }
+    function closeCelebration() {
+      document.getElementById('celebrateOverlay').classList.remove('show');
+      if (flowerInterval) { clearInterval(flowerInterval); flowerInterval = null; }
+      document.querySelectorAll('.flower-piece').forEach(f => f.remove());
+    }
+
+    document.getElementById('hamburger').addEventListener('click', () =>
+      document.getElementById('mobileMenu').classList.toggle('open'));
+  </script>
+</body>
+</html>

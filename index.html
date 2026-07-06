@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hook Et — Handmade Crochet</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Featured card images ── */
+    .feat-img       { width:100%; height:180px; object-fit:cover; display:block; }
+    .feat-fallback  { width:100%; height:180px; }
+
+    /* ── Gallery Showcase ── */
+    .gallery-showcase { margin:0; background:var(--cream); }
+
+    .gs-banner-wrap {
+      position:relative; width:100%; height:340px;
+      overflow:hidden; background:var(--charcoal);
+    }
+    .gs-banner-img {
+      width:100%; height:100%; object-fit:cover; object-position:center;
+      display:block; filter:brightness(.72); transition:transform 8s ease;
+    }
+    .gs-banner-wrap:hover .gs-banner-img { transform:scale(1.04); }
+
+    .gs-banner-overlay {
+      position:absolute; inset:0;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      text-align:center; padding:2rem; pointer-events:none;
+    }
+    .gs-banner-tag {
+      display:inline-block; background:var(--amber); color:#fff;
+      font-size:.78rem; font-weight:800; letter-spacing:.1em;
+      text-transform:uppercase; padding:.35rem 1.1rem;
+      border-radius:50px; margin-bottom:1rem;
+    }
+    .gs-banner-title {
+      font-family:'Fredoka One',cursive;
+      font-size:clamp(1.8rem,5vw,3rem); color:#fff;
+      line-height:1.15; margin-bottom:.6rem;
+      text-shadow:0 2px 12px rgba(0,0,0,.3);
+    }
+    .gs-banner-sub {
+      color:rgba(255,255,255,.82); font-size:1rem;
+      font-weight:600; max-width:420px;
+    }
+
+    .gs-bottom { background:#F8D7DA; padding:2.5rem 1.5rem 3rem; }
+    .gs-bottom-inner {
+      max-width:1060px; margin:0 auto;
+      display:grid; grid-template-columns:1fr auto;
+      gap:3rem; align-items:center;
+    }
+
+    .gs-thumbs { display:flex; gap:.7rem; flex-wrap:wrap; }
+    .gs-thumb-item {
+      width:110px; height:110px; border-radius:14px;
+      overflow:hidden; flex-shrink:0; border:3px solid var(--peach);
+      transition:transform .2s, border-color .2s; cursor:pointer;
+    }
+    .gs-thumb-item:hover { transform:translateY(-4px) scale(1.04); border-color:var(--amber); }
+    .gs-thumb-item img { width:100%; height:100%; object-fit:cover; display:block; }
+    .gs-thumbs-empty { color:var(--muted); font-size:.88rem; font-weight:600; padding:1rem 0; }
+
+    .gs-cta-block { min-width:220px; max-width:280px; text-align:center; }
+    .gs-yarn-deco {
+      font-size:2.8rem; margin-bottom:.5rem;
+      display:inline-block;
+      animation:spinYarn 6s ease-in-out infinite;
+    }
+    @keyframes spinYarn {
+      0%, 100% { transform:rotate(-8deg); }
+      50%       { transform:rotate(8deg); }
+    }
+    .gs-cta-block h3 {
+      font-family:'Fredoka One',cursive; font-size:1.5rem;
+      color:var(--charcoal); margin-bottom:.6rem; line-height:1.25;
+    }
+    .gs-cta-block p { color:var(--muted); font-size:.88rem; line-height:1.6; margin-bottom:1.2rem; }
+    .gs-btn { display:inline-block; margin-bottom:1.2rem; }
+
+    .gs-stats { display:flex; align-items:center; justify-content:center; gap:.8rem; margin-top:.3rem; }
+    .gs-stat { display:flex; flex-direction:column; align-items:center; line-height:1.2; }
+    .gs-stat span { font-family:'Fredoka One',cursive; font-size:1.4rem; color:var(--amber); }
+    .gs-stat small { font-size:.7rem; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+    .gs-stat-divider { width:1px; height:28px; background:var(--peach); }
+
+    @media (max-width:780px) {
+      .gs-bottom-inner    { grid-template-columns:1fr; gap:1.5rem; }
+      .gs-cta-block       { max-width:100%; text-align:left; display:flex; flex-direction:column; align-items:flex-start; }
+      .gs-stats           { justify-content:flex-start; }
+      .gs-banner-wrap     { height:220px; }
+      .gs-thumb-item      { width:85px; height:85px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══════════ NAVBAR ═══════════ -->
+  <header class="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <span class="yarn-icon">🧶</span> Hook Et
+      </a>
+      <nav class="nav-links">
+        <a href="shop.html">Shop</a>
+        <a href="custom.html">Custom Order</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="#about">About</a>
+      </nav>
+      <button class="hamburger" id="hamburger" aria-label="Menu">☰</button>
+    </div>
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="shop.html">Shop</a>
+      <a href="custom.html">Custom Order</a>
+      <a href="gallery.html">Gallery</a>
+      <a href="#about">About</a>
+    </div>
+  </header>
+
+
+  <!-- ═══════════ HERO ═══════════ -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">✨ Handmade with love</div>
+      <h1 class="hero-title">Cozy things,<br/><span class="accent">crafted by hand.</span></h1>
+      <p class="hero-sub">
+        Each item made just for you. Browse ready-made goodies or order something totally unique.
+      </p>
+      <div class="hero-cta">
+        <a href="shop.html"  class="btn btn-primary">Shop Available Items</a>
+        <a href="custom.html" class="btn btn-outline">Request Custom Order</a>
+      </div>
+    </div>
+    <div class="hero-art">
+      <div class="hero-blob"></div>
+      <!-- Hero image — put your file at Images/cat.png -->
+      <img src="Images/cat.png"
+           alt="Hook Et mascot"
+           class="hero-img"
+           onerror="this.style.display='none'" />
+    </div>
+  </section>
+
+
+  <!-- ═══════════ WAVY DIVIDER ═══════════ -->
+  <div class="yarn-divider" aria-hidden="true">
+    <svg viewBox="0 0 1200 40" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+      <path d="M0,20 Q50,0 100,20 Q150,40 200,20 Q250,0 300,20 Q350,40 400,20
+               Q450,0 500,20 Q550,40 600,20 Q650,0 700,20 Q750,40 800,20
+               Q850,0 900,20 Q950,40 1000,20 Q1050,0 1100,20 Q1150,40 1200,20"
+            fill="none" stroke="#F9B8A0" stroke-width="3" class="wave-path"/>
+    </svg>
+  </div>
+
+
+  <!-- ═══════════ QUICK PATHS ═══════════ -->
+  <section class="paths" id="paths">
+    <div class="section-label">Where would you like to go?</div>
+    <div class="paths-grid">
+
+      <a href="shop.html" class="path-card path-shop">
+        <div class="path-icon">🛍️</div>
+        <h2>Ready-Made Shop</h2>
+        <p>Browse items already finished and available to order right away.</p>
+        <span class="path-arrow">Browse the shop →</span>
+      </a>
+
+      <a href="custom.html" class="path-card path-custom">
+        <div class="path-icon">🎨</div>
+        <h2>Custom Order</h2>
+        <p>Have something specific in mind? Tell me the colors, size, and style. I'll make it just for you.</p>
+        <span class="path-arrow">Start a request →</span>
+      </a>
+
+    </div>
+  </section>
+
+
+  <!-- ═══════════ FEATURED ITEMS ═══════════ -->
+  <!--
+    IMAGE GUIDE — Currently Available cards:
+    Each card has an <img> tag. Change the src="" to your photo path.
+    Put photos inside an "Images/" folder next to this file.
+
+    Card 1 → src="Images/keychain.jpg"   (change filename to yours)
+    Card 2 → src="Images/hat.jpg"
+    Card 3 → src="Images/bouquet.jpg"
+
+    If an image file is missing, the emoji fallback shows instead.
+  -->
+  <section class="featured" id="featured">
+    <div class="section-header">
+      <h2 class="section-title">Currently Available</h2>
+      <p class="section-sub">Fresh off the hook 🧡</p>
+    </div>
+
+    <div class="items-grid">
+
+      <!-- CARD 1 — change src and text below to match your product -->
+      <div class="item-card">
+        <div class="item-img-wrap">
+          <img class="feat-img"
+               src="Images/keychain.png"
+               alt="Keychains"
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+          <div class="item-placeholder feat-fallback" style="background:#FFE4E8; display:none;">🧸</div>
+          <span class="item-badge">Available</span>
+        </div>
+        <div class="item-info">
+          <h3>Keychains</h3>
+          <p>Small accessories that you can clip anywhere you like.</p>
+          <div class="item-footer">
+            <span class="item-price">₱20–₱300</span>
+            <a href="shop.html" class="btn-small">Order</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 2 — change src and text below to match your product -->
+      <div class="item-card">
+        <div class="item-img-wrap">
+          <img class="feat-img"
+               src="Images/hat.png"
+               alt="Hats"
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+          <div class="item-placeholder feat-fallback" style="background:#E8F4E8; display:none;">👜</div>
+          <span class="item-badge">Available</span>
+        </div>
+        <div class="item-info">
+          <h3>Hats</h3>
+          <p>Wear it like you own it.</p>
+          <div class="item-footer">
+            <span class="item-price">₱250–₱500</span>
+            <a href="shop.html" class="btn-small">Order</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD 3 — change src and text below to match your product -->
+      <div class="item-card">
+        <div class="item-img-wrap">
+          <img class="feat-img"
+               src="Images/bouquet.png"
+               alt="Flower Bouquet"
+               onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+          <div class="item-placeholder feat-fallback" style="background:#FFF3E0; display:none;">🌸</div>
+          <span class="item-badge">Available</span>
+        </div>
+        <div class="item-info">
+          <h3>Flower Bouquet</h3>
+          <p>Love that never withers.</p>
+          <div class="item-footer">
+            <span class="item-price">₱90–₱500</span>
+            <a href="shop.html" class="btn-small">Order</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="see-all-wrap">
+      <a href="shop.html" class="btn btn-outline">See all items</a>
+    </div>
+  </section>
+
+
+  <!-- ═══════════ CUSTOM ORDER CTA ═══════════ -->
+  <section class="custom-cta">
+    <div class="cta-inner">
+      <div class="cta-text">
+        <h2>Something in your mind?</h2>
+        <p>Custom orders are open! Whether it's a specific character, color palette, or size. Just ask and I'll crochet it for you.</p>
+        <a href="custom.html" class="btn btn-primary">Request a Custom Order</a>
+      </div>
+      <div class="cta-emoji" aria-hidden="true">🧶🐈🌷</div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════ GALLERY SHOWCASE ═══════════ -->
+  <!--
+    BANNER IMAGE — put a wide landscape photo at:  Images/gallery.png
+    Recommended size: 1400 × 500 px (or similar wide ratio)
+    The text title is overlaid on top of it automatically.
+  -->
+  <section class="gallery-showcase">
+
+    <!-- Wide banner with text overlay -->
+    <div class="gs-banner-wrap">
+      <img src="Images/gallery.png"
+           alt="Hook Et crochet gallery"
+           class="gs-banner-img"
+           onerror="this.parentElement.style.display='none'" />
+      <div class="gs-banner-overlay">
+        <div class="gs-banner-tag">Our Work ✨</div>
+        <h2 class="gs-banner-title">See What We've Made 📸</h2>
+      </div>
+    </div>
+
+    <!-- Thumbnails + CTA row -->
+    <div class="gs-bottom">
+      <div class="gs-bottom-inner">
+
+        <!-- Gallery photo thumbnails (auto-filled from admin gallery) -->
+        <div class="gs-thumbs" id="galleryTeaser"></div>
+
+        <!-- Right side text + button -->
+        <div class="gs-cta-block">
+          <div class="gs-yarn-deco" aria-hidden="true">🧶</div>
+          <h3>Every stitch<br/>tells a story.</h3>
+          <p>From tiny keychains to full bouquets. Browse our finished works and find what speaks to you.</p>
+          <a href="gallery.html" class="btn btn-primary gs-btn">View Full Gallery →</a>
+          <div class="gs-stats">
+            <div class="gs-stat">
+              <span id="gsPhotoCount">0</span>
+              <small>photos</small>
+            </div>
+            <div class="gs-stat-divider"></div>
+            <div class="gs-stat">
+              <span>100%</span>
+              <small>handmade</small>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- ═══════════ ABOUT ═══════════ -->
+  <!--
+    ABOUT IMAGE — change src below to your own photo.
+    Put the file in: Images/avatar.png  (or any name you choose)
+  -->
+  <section class="about" id="about">
+    <div class="about-inner">
+
+      <div class="about-img-wrap">
+        <img src="Images/avatar.png"
+             alt="Hook Et owner illustration"
+             class="about-img"
+             onerror="this.style.opacity='0'" />
+      </div>
+
+      <div class="about-text">
+        <div class="section-label">The maker</div>
+        <h2>Hi, I'm the person behind Hook Et! 👋</h2>
+        <p>
+          I started crocheting because I loved making cute stuffs and it just kept growing from there.
+          Every item I make is stitched with love, effort, and care. Whether it's for a gift, a collection,
+          or just a little something to brighten your day.
+        </p>
+        <p>Based in Cebu 🇵🇭 — shipping locally and via meet-up. Custom orders take 4–7 days depending on complexity.</p>
+        <div class="social-links">
+          <!-- Change href to your real Facebook and Instagram links -->
+          <a href="https://www.facebook.com/profile.php?id=61559727804406&mibextid=JRoKGi" class="social-pill">📘 Facebook</a>
+          <a href="https://www.instagram.com/hook.et?igsh=MXcwbTdwYmp4d3FqZg%3D%3D"       class="social-pill">📸 Instagram</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ═══════════ FOOTER ═══════════ -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="yarn-icon">🧶</span>
+        <span class="footer-name">Hook Et</span>
+        <p>Handmade crochet from Cebu, Philippines 🇵🇭</p>
+      </div>
+      <div class="footer-links">
+        <a href="shop.html">Shop</a>
+        <a href="custom.html">Custom Order</a>
+        <a href="gallery.html">Gallery</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2024 Hook Et. Made with 🧡 and lots of yarn.</p>
+    </div>
+  </footer>
+
+
+  <!-- Secret admin dot — invisible, bottom-left corner, only the owner knows -->
+  <a href="admin.html" aria-hidden="true" tabindex="-1"
+     style="position:fixed;bottom:6px;left:6px;width:8px;height:8px;border-radius:50%;
+            background:rgba(200,200,200,0.18);display:block;z-index:9999;cursor:default;"></a>
+
+
+  <script>
+    /* Hamburger menu toggle */
+    document.getElementById('hamburger').addEventListener('click', () => {
+      document.getElementById('mobileMenu').classList.toggle('open');
+    });
+
+    /* Gallery teaser — loads up to 5 latest photos from admin gallery */
+    (function () {
+      const photos  = JSON.parse(localStorage.getItem('hooket_gallery') || '[]');
+      const teaser  = document.getElementById('galleryTeaser');
+      const counter = document.getElementById('gsPhotoCount');
+
+      if (counter) counter.textContent = photos.length;
+
+      if (!photos.length) {
+        teaser.innerHTML = '<div class="gs-thumbs-empty">📸 Gallery photos coming soon!</div>';
+        return;
+      }
+
+      teaser.innerHTML = photos.slice(0, 5).map(p =>
+        `<a href="gallery.html" class="gs-thumb-item">
+           <img src="${p.image}" alt="${p.label || 'Crochet work'}" loading="lazy" />
+         </a>`
+      ).join('');
+    })();
+  </script>
+
+</body>
+</html>

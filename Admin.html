@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Owner Portal — Hook Et</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* LOGIN */
+    .login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--cream)}
+    .login-box{background:#fff;border-radius:var(--radius);padding:2.5rem 2rem;width:100%;max-width:360px;box-shadow:0 8px 40px rgba(45,32,23,.15);text-align:center}
+    .login-box .lock-icon{font-size:3rem;margin-bottom:.8rem}
+    .login-box h2{margin-bottom:.3rem}
+    .login-box p{color:var(--muted);font-size:.9rem;margin-bottom:1.5rem}
+    .login-box input{width:100%;border:2px solid var(--peach);border-radius:var(--radius-sm);padding:.7rem 1rem;font-size:.95rem;font-family:'Nunito',sans-serif;margin-bottom:.8rem;outline:none;text-align:center;letter-spacing:.1em}
+    .login-box input:focus{border-color:var(--amber)}
+    .err{color:#c0392b;font-size:.85rem;margin-bottom:.8rem;display:none}
+
+    /* DASHBOARD */
+    .admin-wrap{max-width:1060px;margin:0 auto;padding:2rem 1.5rem 5rem}
+    .admin-top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;margin-bottom:1.8rem}
+    .admin-top h1{font-size:2rem}
+    .admin-actions{display:flex;gap:.7rem;flex-wrap:wrap}
+
+    /* PAGE TABS (Orders vs Products) */
+    .page-tabs{display:flex;gap:.5rem;margin-bottom:2rem;border-bottom:2px solid var(--peach);padding-bottom:.5rem}
+    .page-tab{padding:.55rem 1.4rem;border-radius:50px 50px 0 0;border:none;background:transparent;font-family:'Nunito',sans-serif;font-weight:800;font-size:1rem;cursor:pointer;color:var(--muted);transition:all .15s}
+    .page-tab:hover{color:var(--amber)}
+    .page-tab.active{background:var(--amber);color:#fff}
+    .page{display:none}
+    .page.active{display:block}
+
+    /* STATS */
+    .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1rem;margin-bottom:2rem}
+    .stat-card{background:#fff;border-radius:var(--radius);padding:1.2rem 1rem;text-align:center;box-shadow:var(--shadow)}
+    .stat-num{font-family:'Fredoka One',cursive;font-size:2.2rem;line-height:1}
+    .stat-label{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-top:.3rem}
+
+    /* FILTER TABS */
+    .tab-bar{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem}
+    .tab{padding:.45rem 1.1rem;border-radius:50px;border:2px solid var(--peach);background:transparent;font-family:'Nunito',sans-serif;font-weight:800;font-size:.85rem;cursor:pointer;transition:all .15s}
+    .tab:hover{border-color:var(--amber);color:var(--amber)}
+    .tab.active{background:var(--amber);border-color:var(--amber);color:#fff}
+
+    /* ORDER CARDS */
+    .orders-list{display:flex;flex-direction:column;gap:1.2rem}
+    .o-card{background:#fff;border-radius:var(--radius);padding:1.5rem;box-shadow:var(--shadow);border-left:5px solid var(--peach);transition:box-shadow .15s}
+    .o-card:hover{box-shadow:0 8px 28px rgba(45,32,23,.13)}
+    .o-card.done{border-left-color:var(--sage);opacity:.8}
+    .o-card.in-progress{border-left-color:#60a5fa}
+    .o-card.cancelled{border-left-color:#f87171;opacity:.65}
+    .o-header{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
+    .o-title-row{display:flex;align-items:center;gap:.7rem}
+    .o-emoji{font-size:2rem;line-height:1}
+    .o-name{font-family:'Fredoka One',cursive;font-size:1.2rem}
+    .o-type-chip{font-size:.72rem;font-weight:800;padding:.2rem .7rem;border-radius:50px;background:var(--blush);color:var(--muted)}
+    .o-placed{font-size:.78rem;color:var(--muted);margin-top:.2rem}
+    .o-right{display:flex;flex-direction:column;align-items:flex-end;gap:.5rem;min-width:110px}
+    .o-total-num{font-family:'Fredoka One',cursive;font-size:1.5rem;color:var(--amber);line-height:1}
+    .o-total-sub{font-size:.78rem;color:var(--muted);font-weight:600;text-align:right}
+    .o-details{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:.55rem .9rem;margin-bottom:.9rem}
+    .o-field .f-label{font-weight:800;color:var(--charcoal);display:block;font-size:.73rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.1rem}
+    .o-field .f-val{font-size:.88rem;color:var(--muted)}
+    .o-items-box{background:var(--cream);border-radius:var(--radius-sm);padding:.9rem 1rem;margin-bottom:.9rem;border:1.5px solid var(--peach)}
+    .o-items-title{font-weight:800;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--charcoal);margin-bottom:.6rem}
+    .o-item-row{display:flex;align-items:center;gap:.6rem;font-size:.88rem;padding:.3rem 0;border-bottom:1px dashed var(--peach)}
+    .o-item-row:last-child{border-bottom:none}
+    .o-item-emoji{font-size:1.1rem;width:1.5rem;text-align:center}
+    .o-item-name{flex:1;font-weight:700;color:var(--charcoal)}
+    .o-item-qty{color:var(--muted);font-size:.82rem}
+    .o-item-sub{font-family:'Fredoka One',cursive;color:var(--amber);min-width:55px;text-align:right;font-size:.95rem}
+    .o-items-total{display:flex;justify-content:space-between;align-items:center;margin-top:.6rem;padding-top:.5rem;border-top:2px solid var(--peach)}
+    .o-items-total span:first-child{font-weight:800;font-size:.82rem;color:var(--muted)}
+    .o-items-total .ot-num{font-family:'Fredoka One',cursive;font-size:1.2rem;color:var(--amber)}
+    .o-notes{background:var(--cream);border-radius:var(--radius-sm);padding:.7rem 1rem;font-size:.88rem;color:var(--muted);margin-bottom:.8rem}
+    .badge{display:inline-flex;align-items:center;gap:.3rem;padding:.3rem .9rem;border-radius:50px;font-size:.8rem;font-weight:800}
+    .badge-pending{background:#FFF3CD;color:#856404}
+    .badge-progress{background:#DBEAFE;color:#1d4ed8}
+    .badge-done{background:#D1FAE5;color:#065f46}
+    .badge-cancelled{background:#FEE2E2;color:#991b1b}
+    .o-actions{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-top:.9rem}
+    .btn-done{background:var(--sage);color:#fff;border:none;border-radius:50px;padding:.48rem 1.3rem;font-family:'Nunito',sans-serif;font-weight:800;font-size:.88rem;cursor:pointer;transition:all .15s}
+    .btn-done:hover{filter:brightness(.9);transform:translateY(-1px)}
+    .btn-progress{background:#DBEAFE;color:#1d4ed8;border:none;border-radius:50px;padding:.48rem 1.3rem;font-family:'Nunito',sans-serif;font-weight:800;font-size:.88rem;cursor:pointer}
+    .btn-progress:hover{background:#BFDBFE}
+    .btn-cancel{background:#FEE2E2;color:#991b1b;border:none;border-radius:50px;padding:.48rem 1.3rem;font-family:'Nunito',sans-serif;font-weight:800;font-size:.88rem;cursor:pointer}
+    .btn-cancel:hover{background:#FECACA}
+    .btn-reopen{background:#f3f4f6;color:var(--muted);border:none;border-radius:50px;padding:.4rem 1rem;font-family:'Nunito',sans-serif;font-weight:700;font-size:.82rem;cursor:pointer}
+    .btn-reopen:hover{background:var(--blush)}
+    .btn-del{background:transparent;color:var(--muted);border:2px solid var(--peach);border-radius:50px;padding:.38rem .9rem;font-family:'Nunito',sans-serif;font-weight:700;font-size:.8rem;cursor:pointer}
+    .btn-del:hover{border-color:#f87171;color:#991b1b}
+    .set-total-wrap{display:flex;gap:.4rem;align-items:center;margin-top:.5rem;flex-wrap:wrap}
+    .set-total-wrap label{font-size:.8rem;font-weight:800;color:var(--muted)}
+    .set-total-wrap input{border:2px solid var(--peach);border-radius:var(--radius-sm);padding:.35rem .6rem;font-size:.88rem;font-family:'Nunito',sans-serif;width:110px;outline:none}
+    .set-total-wrap input:focus{border-color:var(--amber)}
+    .set-total-wrap button{background:var(--amber);color:#fff;border:none;border-radius:50px;padding:.35rem .9rem;font-weight:800;font-size:.8rem;cursor:pointer;font-family:'Nunito',sans-serif}
+    .warn{color:#b45309;font-weight:800}
+    .search-bar{width:100%;border:2px solid var(--peach);border-radius:50px;padding:.6rem 1.3rem;font-family:'Nunito',sans-serif;font-size:.95rem;outline:none;margin-bottom:1.2rem;background:#fff}
+    .search-bar:focus{border-color:var(--amber)}
+    .empty-state{text-align:center;padding:4rem 2rem;color:var(--muted)}
+    .empty-state .e-icon{font-size:3rem;margin-bottom:.8rem}
+
+    /* ════ PRODUCTS PAGE ════ */
+    .products-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem}
+    .products-top h2{font-size:1.5rem}
+    .products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.2rem}
+    .prod-card{background:#fff;border-radius:var(--radius);padding:1.2rem;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:.5rem}
+    .prod-top{display:flex;align-items:center;gap:.8rem}
+    .prod-emoji-big{font-size:2.5rem;width:3.5rem;height:3.5rem;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm)}
+    .prod-info h3{font-size:1rem;margin-bottom:.1rem}
+    .prod-info .prod-price{font-family:'Fredoka One',cursive;color:var(--amber);font-size:1.1rem}
+    .prod-desc{font-size:.83rem;color:var(--muted);line-height:1.5}
+    .prod-actions{display:flex;gap:.5rem;margin-top:.3rem}
+    .btn-edit{background:var(--blush);color:var(--charcoal);border:none;border-radius:50px;padding:.38rem 1rem;font-family:'Nunito',sans-serif;font-weight:800;font-size:.82rem;cursor:pointer;transition:all .15s}
+    .btn-edit:hover{background:var(--peach)}
+    .btn-remove{background:#FEE2E2;color:#991b1b;border:none;border-radius:50px;padding:.38rem 1rem;font-family:'Nunito',sans-serif;font-weight:800;font-size:.82rem;cursor:pointer}
+    .btn-remove:hover{background:#FECACA}
+
+    /* PRODUCT FORM MODAL */
+    .pmodal-overlay{display:none;position:fixed;inset:0;background:rgba(45,32,23,.45);backdrop-filter:blur(4px);z-index:600;align-items:center;justify-content:center;padding:1rem}
+    .pmodal-overlay.open{display:flex}
+    .pmodal{background:#fff;border-radius:var(--radius);padding:2rem;max-width:460px;width:100%;position:relative;box-shadow:0 20px 50px rgba(45,32,23,.22);animation:popIn .2s ease}
+    @keyframes popIn{from{transform:scale(.93);opacity:0}to{transform:scale(1);opacity:1}}
+    .pmodal-close{position:absolute;top:1rem;right:1rem;background:var(--blush);border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:1rem;line-height:32px}
+    .pfg{margin-bottom:1rem;display:flex;flex-direction:column;gap:.3rem}
+    .pfg label{font-weight:800;font-size:.85rem;color:var(--charcoal)}
+    .pfg input,.pfg textarea{border:2px solid var(--peach);border-radius:var(--radius-sm);padding:.6rem .9rem;font-family:'Nunito',sans-serif;font-size:.9rem;outline:none;transition:border-color .15s;background:var(--cream)}
+    .pfg input:focus,.pfg textarea:focus{border-color:var(--amber)}
+    .pfg-row{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+    .emoji-preview{font-size:2.5rem;text-align:center;margin-bottom:.5rem;min-height:3rem}
+    /* Color swatches for bg */
+    .bg-swatches{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.4rem}
+    .swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:border-color .15s}
+    .swatch.selected{border-color:var(--charcoal)}
+
+    /* IMAGE UPLOAD */
+    .img-upload-area{position:relative;width:100%;height:180px;border:2.5px dashed var(--peach);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .15s;overflow:hidden;background:var(--cream)}
+    .img-upload-area:hover{border-color:var(--amber);background:#fff}
+    #imgUploadPlaceholder{display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+    .img-upload-area.has-image{border-style:solid;border-color:var(--sage)}
+
+    /* Toast */
+    .toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(20px);background:var(--charcoal);color:#fff;padding:.9rem 1.8rem;border-radius:50px;font-weight:700;font-size:.95rem;opacity:0;transition:all .35s;z-index:999;pointer-events:none;white-space:nowrap}
+    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+
+    /* REFERENCE PHOTOS in order cards */
+    .ref-photos-box{margin-bottom:.9rem}
+    .ref-photos-label{font-weight:800;font-size:.73rem;text-transform:uppercase;letter-spacing:.05em;color:var(--charcoal);display:block;margin-bottom:.5rem}
+    .ref-photos-grid{display:flex;gap:.6rem;flex-wrap:wrap}
+    .ref-photo-thumb{
+      width:90px;height:90px;border-radius:var(--radius-sm);
+      overflow:hidden;cursor:pointer;border:2px solid var(--peach);
+      transition:transform .15s,border-color .15s;flex-shrink:0;
+    }
+    .ref-photo-thumb:hover{transform:scale(1.04);border-color:var(--amber)}
+    .ref-photo-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    /* Lightbox */
+    .ref-lightbox{display:none;position:fixed;inset:0;background:rgba(45,32,23,.85);z-index:900;align-items:center;justify-content:center;padding:1rem}
+    .ref-lightbox.open{display:flex}
+    .ref-lightbox img{max-width:90vw;max-height:88vh;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.4);object-fit:contain}
+    .ref-lightbox-close{position:fixed;top:1rem;right:1rem;background:#fff;border:none;border-radius:50%;width:40px;height:40px;font-size:1.2rem;cursor:pointer;line-height:40px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+    .ref-lb-caption{position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%);background:rgba(45,32,23,.7);color:#fff;padding:.4rem 1rem;border-radius:50px;font-size:.82rem;font-weight:700;white-space:nowrap}
+
+
+    /* ════ GALLERY PAGE ════ */
+    .gal-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem}
+    .gal-top h2{font-size:1.5rem}
+    .gal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1.2rem}
+    .gal-card{background:#fff;border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);transition:transform .2s}
+    .gal-card:hover{transform:translateY(-3px)}
+    .gal-card-img{width:100%;height:160px;object-fit:cover;display:block;cursor:zoom-in;transition:transform .3s}
+    .gal-card-img:hover{transform:scale(1.04)}
+    .gal-card-body{padding:.8rem}
+    .gal-card-label{font-weight:800;font-size:.9rem;color:var(--charcoal);margin-bottom:.2rem}
+    .gal-card-tag{display:inline-block;font-size:.72rem;font-weight:800;background:var(--blush);color:var(--muted);padding:.15rem .6rem;border-radius:50px}
+    .gal-card-actions{display:flex;gap:.5rem;margin-top:.7rem}
+    /* Gallery photo form modal */
+    .gmodal-overlay{display:none;position:fixed;inset:0;background:rgba(45,32,23,.45);backdrop-filter:blur(4px);z-index:650;align-items:center;justify-content:center;padding:1rem}
+    .gmodal-overlay.open{display:flex}
+    .gmodal{background:#fff;border-radius:var(--radius);padding:2rem;max-width:440px;width:100%;position:relative;box-shadow:0 20px 50px rgba(45,32,23,.22);animation:popIn .2s ease;max-height:90vh;overflow-y:auto}
+    .gmodal-close{position:absolute;top:1rem;right:1rem;background:var(--blush);border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:1rem;line-height:32px}
+    .gfg{margin-bottom:.9rem;display:flex;flex-direction:column;gap:.3rem}
+    .gfg label{font-weight:800;font-size:.85rem;color:var(--charcoal)}
+    .gfg input{border:2px solid var(--peach);border-radius:var(--radius-sm);padding:.6rem .9rem;font-family:'Nunito',sans-serif;font-size:.9rem;outline:none;transition:border-color .15s;background:var(--cream)}
+    .gfg input:focus{border-color:var(--amber)}
+    .g-img-upload{position:relative;width:100%;height:160px;border:2.5px dashed var(--peach);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:var(--cream);transition:border-color .15s;margin-bottom:.3rem}
+    .g-img-upload:hover{border-color:var(--amber);background:#fff}
+    .g-img-upload img{width:100%;height:100%;object-fit:cover;display:none}
+    .g-img-upload .g-upload-ph{display:flex;flex-direction:column;align-items:center;pointer-events:none;gap:.3rem;font-size:.85rem;color:var(--muted);font-weight:700}
+    .g-img-upload.has-img .g-upload-ph{display:none}
+    .g-img-upload.has-img img{display:block}
+    .g-lb-admin{display:none;position:fixed;inset:0;background:rgba(10,8,6,.92);z-index:960;align-items:center;justify-content:center;padding:1rem;flex-direction:column}
+    .g-lb-admin.open{display:flex}
+    .g-lb-admin img{max-width:90vw;max-height:82vh;border-radius:16px;object-fit:contain;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+    .g-lb-admin-info{margin-top:.8rem;background:rgba(45,32,23,.7);padding:.5rem 1.3rem;border-radius:50px;color:#fff;font-weight:800;font-size:.9rem;text-align:center}
+    .g-lb-admin-close{position:fixed;top:1rem;right:1rem;background:rgba(255,255,255,.2);border:none;border-radius:50%;width:40px;height:40px;font-size:1.1rem;cursor:pointer;color:#fff;line-height:40px;text-align:center}
+
+    @media(max-width:600px){.o-header{flex-direction:column}.o-right{align-items:flex-start;flex-direction:row;flex-wrap:wrap}.o-details{grid-template-columns:1fr}}
+
+    /* RECOVERY & CHANGE PASSWORD */
+    .login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--cream);padding:1rem}
+    .success-msg-txt{color:#065f46;font-size:.85rem;margin-bottom:.8rem;display:none;background:#D1FAE5;padding:.5rem .8rem;border-radius:8px;text-align:center}
+    .forgot-link{font-size:.82rem;color:var(--amber);text-decoration:underline;cursor:pointer;background:none;border:none;font-family:'Nunito',sans-serif;font-weight:700;margin-bottom:.8rem;display:inline-block}
+    .forgot-link:hover{color:var(--charcoal)}
+    .back-btn{font-size:.82rem;color:var(--muted);background:none;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700;margin-bottom:1rem;display:inline-block;text-decoration:underline}
+    .back-btn:hover{color:var(--charcoal)}
+    .panel{display:none}.panel.active{display:block}
+    .step-badge{display:inline-block;background:var(--blush);color:var(--muted);font-size:.72rem;font-weight:800;padding:.25rem .8rem;border-radius:50px;margin-bottom:.9rem;letter-spacing:.05em;text-transform:uppercase}
+    .login-box select{width:100%;border:2px solid var(--peach);border-radius:var(--radius-sm);padding:.7rem 1rem;font-size:.88rem;font-family:'Nunito',sans-serif;margin-bottom:.8rem;outline:none;background:#fff;color:var(--charcoal)}
+    .login-box select:focus{border-color:var(--amber)}
+    .chpw-overlay{display:none;position:fixed;inset:0;background:rgba(45,32,23,.45);backdrop-filter:blur(4px);z-index:700;align-items:center;justify-content:center;padding:1rem}
+    .chpw-overlay.open{display:flex}
+    .chpw-box{background:#fff;border-radius:var(--radius);padding:2rem;max-width:380px;width:100%;box-shadow:0 20px 50px rgba(45,32,23,.22);animation:popIn .2s ease;position:relative;text-align:center}
+    .chpw-box h2{margin-bottom:.3rem}
+    .chpw-box p{color:var(--muted);font-size:.88rem;margin-bottom:1.2rem}
+    .chpw-box input{width:100%;border:2px solid var(--peach);border-radius:var(--radius-sm);padding:.65rem 1rem;font-size:.9rem;font-family:'Nunito',sans-serif;margin-bottom:.8rem;outline:none;text-align:left}
+    .chpw-box input:focus{border-color:var(--amber)}
+    .chpw-close{position:absolute;top:1rem;right:1rem;background:var(--blush);border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:1rem;line-height:32px}
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div id="loginScreen" class="login-screen">
+    <div class="login-box">
+
+      <!-- ── PANEL 1: Normal Login ── -->
+      <div class="panel active" id="panelLogin">
+        <div class="lock-icon">🔒</div>
+        <h2>Owner Portal</h2>
+        <p>Hook Et owners only. Enter your password.</p>
+        <p class="err" id="errMsg">❌ Wrong password. Try again.</p>
+        <input type="password" id="pwInput" placeholder="••••••••" autocomplete="current-password" />
+        <button class="btn btn-primary" style="width:100%;margin-bottom:.8rem" onclick="checkLogin()">Login</button>
+        <button class="forgot-link" onclick="showPanel('panelForgot')">🔑 Forgot password?</button>
+      </div>
+
+      <!-- ── PANEL 2: Security Question ── -->
+      <div class="panel" id="panelForgot">
+        <div class="lock-icon">🤔</div>
+        <div class="step-badge">Step 1 of 2 — Security Question</div>
+        <h2>Forgot Password</h2>
+        <p>Answer your secret question to reset your password.</p>
+        <p class="err" id="sqErrMsg">❌ Wrong answer. Try again.</p>
+        <div style="text-align:left;margin-bottom:.8rem">
+          <label style="font-weight:800;font-size:.85rem;color:var(--charcoal);display:block;margin-bottom:.4rem" id="sqLabel"></label>
+          <input type="text" id="sqAnswer" placeholder="Your answer…" style="letter-spacing:normal" />
+        </div>
+        <button class="btn btn-primary" style="width:100%;margin-bottom:.8rem" onclick="checkSecurityAnswer()">Check Answer →</button>
+        <button class="back-btn" onclick="showPanel('panelLogin')">← Back to login</button>
+      </div>
+
+      <!-- ── PANEL 3: Set New Password ── -->
+      <div class="panel" id="panelReset">
+        <div class="lock-icon">🔓</div>
+        <div class="step-badge">Step 2 of 2 — New Password</div>
+        <h2>Set New Password</h2>
+        <p>Almost done! Choose a new password.</p>
+        <p class="err" id="resetErrMsg">❌ Passwords don't match.</p>
+        <p class="success-msg-txt" id="resetSuccessMsg">✅ Password updated! You can now log in.</p>
+        <input type="password" id="newPw1" placeholder="New password" style="letter-spacing:.1em" />
+        <input type="password" id="newPw2" placeholder="Confirm new password" style="letter-spacing:.1em" />
+        <button class="btn btn-primary" style="width:100%;margin-bottom:.8rem" onclick="saveNewPassword()">Save New Password 💛</button>
+        <button class="back-btn" onclick="showPanel('panelLogin')">← Back to login</button>
+      </div>
+
+    </div>
+  </div>
+
+
+
+  <!-- GALLERY PHOTO FORM MODAL -->
+  <div class="gmodal-overlay" id="gmodalOverlay">
+    <div class="gmodal">
+      <button class="gmodal-close" onclick="closeGalForm()">✕</button>
+      <h2 id="gmodalTitle" style="margin-bottom:1rem">＋ Add Photo</h2>
+
+      <div class="gfg">
+        <label>Photo *</label>
+        <div class="g-img-upload" id="gImgUpload" onclick="document.getElementById('gImgFile').click()">
+          <img id="gImgPreview" src="" alt="" />
+          <div class="g-upload-ph">
+            <span style="font-size:2rem">📷</span>
+            <span>Click to upload photo</span>
+            <span style="font-size:.75rem;opacity:.7">PNG, JPG, WEBP</span>
+          </div>
+        </div>
+        <input type="file" id="gImgFile" accept="image/*" style="display:none" onchange="handleGalImg(event)" />
+        <button type="button" id="gRemoveImg" onclick="removeGalImg()" style="display:none;background:#FEE2E2;color:#991b1b;border:none;border-radius:50px;padding:.3rem .9rem;font-size:.8rem;font-weight:800;cursor:pointer;margin-top:.3rem;width:fit-content">✕ Remove Photo</button>
+      </div>
+      <div class="gfg">
+        <label>Label / Title *</label>
+        <input type="text" id="gLabel" placeholder="e.g. Lavender Bunny Plushie" />
+      </div>
+      <div class="gfg">
+        <label>Category Tag <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+        <input type="text" id="gTag" placeholder="e.g. Plushie, Bouquet, Bag, Keychain…" />
+      </div>
+      <input type="hidden" id="gEditId" value="" />
+      <input type="hidden" id="gImgData" value="" />
+      <button class="btn btn-primary" style="width:100%;margin-top:.5rem;padding:.85rem" onclick="saveGalPhoto()">Save Photo 💛</button>
+    </div>
+  </div>
+
+  <!-- ADMIN GALLERY LIGHTBOX -->
+  <div class="g-lb-admin" id="gLbAdmin">
+    <button class="g-lb-admin-close" onclick="closeAdminLb()">✕</button>
+    <img id="gLbAdminImg" src="" alt="" />
+    <div class="g-lb-admin-info" id="gLbAdminInfo"></div>
+  </div>
+
+  <!-- REFERENCE PHOTO LIGHTBOX -->
+  <div class="ref-lightbox" id="refLightbox" onclick="closeRefLightbox()">
+    <button class="ref-lightbox-close" onclick="closeRefLightbox()">✕</button>
+    <img id="refLightboxImg" src="" alt="Reference photo" />
+    <div class="ref-lb-caption" id="refLbCaption"></div>
+  </div>
+
+  <!-- CHANGE PASSWORD MODAL (inside dashboard) -->
+  <div class="chpw-overlay" id="chpwOverlay">
+    <div class="chpw-box">
+      <button class="chpw-close" onclick="document.getElementById('chpwOverlay').classList.remove('open')">✕</button>
+      <div style="font-size:2.5rem;margin-bottom:.5rem">🔐</div>
+      <h2>Change Password</h2>
+      <p>Enter your current password, then choose a new one.</p>
+      <p class="err" id="chpwErr">❌ Error. Check fields and try again.</p>
+      <p class="success-msg-txt" id="chpwSuccess">✅ Password changed successfully!</p>
+      <input type="password" id="chpwCurrent" placeholder="Current password" />
+      <input type="password" id="chpwNew1"    placeholder="New password" />
+      <input type="password" id="chpwNew2"    placeholder="Confirm new password" />
+      <button class="btn btn-primary" style="width:100%;margin-bottom:.5rem" onclick="changePassword()">Update Password 💛</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboard" style="display:none">
+    <header class="navbar">
+      <div class="nav-inner">
+        <a href="index.html" class="nav-logo"><span class="yarn-icon">🧶</span> Hook Et</a>
+        <nav class="nav-links">
+          <a href="index.html">← Back to Site</a>
+          <button class="btn btn-outline" style="font-size:.85rem;padding:.4rem 1rem" onclick="document.getElementById('chpwOverlay').classList.add('open')">🔐 Change Password</button>
+          <button class="btn btn-outline" style="font-size:.85rem;padding:.4rem 1rem" onclick="logout()">Logout</button>
+        </nav>
+      </div>
+    </header>
+
+    <main class="admin-wrap">
+      <div class="admin-top">
+        <div>
+          <div class="section-label">Owner Portal</div>
+          <h1>Hook Et Dashboard 🧶</h1>
+        </div>
+        <div class="admin-actions" id="orderActions">
+          <button class="btn btn-outline" onclick="exportCSV()" style="font-size:.85rem;padding:.5rem 1.1rem">⬇ Export CSV</button>
+          <button class="btn btn-outline" onclick="clearDone()" style="font-size:.85rem;padding:.5rem 1.1rem">🗑 Clear Done</button>
+        </div>
+      </div>
+
+      <!-- PAGE TABS -->
+      <div class="page-tabs">
+        <button class="page-tab active" onclick="switchPage('orders',this)">📋 Orders</button>
+        <button class="page-tab"        onclick="switchPage('products',this)">🧸 Manage Products</button>
+        <button class="page-tab"        onclick="switchPage('gallery',this)">📸 Gallery</button>
+      </div>
+
+      <!-- ── ORDERS PAGE ── -->
+      <div class="page active" id="page-orders">
+        <div class="stats-row" id="statsRow"></div>
+        <input class="search-bar" id="searchBar" placeholder="🔍  Search by name, item, or contact..." oninput="renderOrders()" />
+        <div class="tab-bar">
+          <button class="tab active" data-filter="all"          onclick="setTab(this)">All</button>
+          <button class="tab"        data-filter="browse"       onclick="setTab(this)">🛍 Browse</button>
+          <button class="tab"        data-filter="custom"       onclick="setTab(this)">🎨 Custom</button>
+          <button class="tab"        data-filter="Pending"      onclick="setTab(this)">⏳ Pending</button>
+          <button class="tab"        data-filter="In Progress"  onclick="setTab(this)">🔧 In Progress</button>
+          <button class="tab"        data-filter="Done"         onclick="setTab(this)">✅ Done</button>
+        </div>
+        <div class="orders-list" id="ordersList"></div>
+      </div>
+
+      <!-- ── GALLERY PAGE ── -->
+      <div class="page" id="page-gallery">
+        <div class="gal-top">
+          <div>
+            <h2>Photo Gallery 📸</h2>
+            <p style="color:var(--muted);font-size:.9rem;margin-top:.2rem">Upload and manage photos shown in your public Gallery page.</p>
+          </div>
+          <button class="btn btn-primary" onclick="openGalForm()">＋ Add Photo</button>
+        </div>
+        <div class="gal-grid" id="galGrid"></div>
+      </div>
+
+      <!-- ── PRODUCTS PAGE ── -->
+      <div class="page" id="page-products">
+        <div class="products-top">
+          <div>
+            <h2>Shop Products 🧸</h2>
+            <p style="color:var(--muted);font-size:.9rem;margin-top:.2rem">Add, edit, or remove items shown in your Browse page.</p>
+          </div>
+          <button class="btn btn-primary" onclick="openProductForm()">＋ Add New Product</button>
+        </div>
+        <div class="products-grid" id="productsGrid"></div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <div class="footer-brand"><span class="yarn-icon">🧶</span><span class="footer-name">Hook Et</span><p>Owner portal</p></div>
+      </div>
+      <div class="footer-bottom"><p>© 2026 Hook Et.</p></div>
+    </footer>
+  </div>
+
+  <!-- ── PRODUCT FORM MODAL ── -->
+  <div class="pmodal-overlay" id="pmodalOverlay">
+    <div class="pmodal">
+      <button class="pmodal-close" onclick="closeProductForm()">✕</button>
+      <h2 id="pmodalTitle" style="margin-bottom:1rem">Add New Product</h2>
+
+      <!-- Image upload area -->
+      <div class="pfg">
+        <label>Product Photo</label>
+        <div class="img-upload-area" id="imgUploadArea" onclick="document.getElementById('pImgFile').click()">
+          <img id="imgPreviewEl" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:10px;" />
+          <div id="imgUploadPlaceholder">
+            <div style="font-size:2rem">📷</div>
+            <div style="font-weight:800;font-size:.9rem;color:var(--charcoal);margin-top:.4rem">Click to upload photo</div>
+            <div style="font-size:.78rem;color:var(--muted);margin-top:.2rem">PNG, JPG, WEBP — any size</div>
+          </div>
+          <button type="button" id="removeImgBtn" onclick="removeImage(event)" style="display:none;position:absolute;top:.5rem;right:.5rem;background:#FEE2E2;color:#991b1b;border:none;border-radius:50px;padding:.25rem .7rem;font-size:.78rem;font-weight:800;cursor:pointer;">✕ Remove</button>
+        </div>
+        <input type="file" id="pImgFile" accept="image/*" style="display:none" onchange="handleImageUpload(event)" />
+        <p style="font-size:.78rem;color:var(--muted);margin-top:.4rem">💡 If no photo uploaded, an emoji will show instead.</p>
+      </div>
+
+      <div class="pfg-row">
+        <div class="pfg">
+          <label>Emoji (fallback icon)</label>
+          <input type="text" id="pEmoji" placeholder="e.g. 🧸" maxlength="4" />
+        </div>
+        <div class="pfg">
+          <label>Price (₱) *</label>
+          <input type="number" id="pPrice" placeholder="e.g. 250" min="1" required />
+        </div>
+      </div>
+      <div class="pfg">
+        <label>Product Name *</label>
+        <input type="text" id="pName" placeholder="e.g. Amigurumi Bear" required />
+      </div>
+      <div class="pfg">
+        <label>Description *</label>
+        <textarea id="pDesc" rows="3" placeholder="Short description customers will see…" required></textarea>
+      </div>
+      <div class="pfg">
+        <label>Card Background Color <span style="font-weight:400;color:var(--muted)">(shown when no photo)</span></label>
+        <div class="bg-swatches" id="bgSwatches"></div>
+        <input type="text" id="pBg" placeholder="#FFE4E8" style="margin-top:.5rem" />
+      </div>
+
+      <input type="hidden" id="pEditId" value="" />
+      <input type="hidden" id="pImgData" value="" />
+      <button class="btn btn-primary" style="width:100%;margin-top:.8rem;padding:.85rem" onclick="saveProduct()">Save Product 💛</button>
+    </div>
+  </div>
+
+  <script>
+    /* ════ PASSWORD & SECURITY CONFIG ════
+       To change your default password, edit DEFAULT_PASSWORD below.
+       To change your security question & answer, edit SQ_QUESTION and SQ_ANSWER.
+       The backup PIN is a simple number code as a second recovery option.
+    ════════════════════════════════════════ */
+    const DEFAULT_PASSWORD = 'kayenami22';
+    const SQ_QUESTION      = 'What is your favorite color?'; // ← Change this question
+    const SQ_ANSWER        = 'orange kupal';                                 // ← Change this answer (lowercase)
+    const BACKUP_PIN       = '1234';                                 // ← Change this backup PIN
+
+    // Runtime password (can be changed by owner without editing code)
+    function getPassword()      { return localStorage.getItem('hooket_pw') || DEFAULT_PASSWORD; }
+    function setPassword(pw)    { localStorage.setItem('hooket_pw', pw); }
+
+    let currentFilter = 'all';
+    const BG_COLORS = ['#FFE4E8','#E8F4E8','#FFF3E0','#EDE7FF','#FFF8DC','#FFECD2','#E0F4FF','#FFF0F5','#F0FFF0','#FFFDE7'];
+
+    /* ════ PANEL SWITCHER ════ */
+    function showPanel(id) {
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      // Populate security question label
+      if (id === 'panelForgot') {
+        document.getElementById('sqLabel').textContent = SQ_QUESTION;
+        document.getElementById('sqAnswer').value = '';
+        document.getElementById('sqErrMsg').style.display = 'none';
+      }
+      if (id === 'panelReset') {
+        document.getElementById('newPw1').value = '';
+        document.getElementById('newPw2').value = '';
+        document.getElementById('resetErrMsg').style.display = 'none';
+        document.getElementById('resetSuccessMsg').style.display = 'none';
+      }
+    }
+
+    /* ════ AUTH ════ */
+    function checkLogin() {
+      const val = document.getElementById('pwInput').value;
+      if (val === getPassword()) {
+        sessionStorage.setItem('hooket_admin','1');
+        showDashboard();
+      } else {
+        document.getElementById('errMsg').style.display = 'block';
+        document.getElementById('pwInput').value = '';
+        document.getElementById('pwInput').focus();
+      }
+    }
+    document.getElementById('pwInput').addEventListener('keydown', e => { if(e.key==='Enter') checkLogin(); });
+
+    function checkSecurityAnswer() {
+      const ans = document.getElementById('sqAnswer').value.trim().toLowerCase();
+      if (ans === SQ_ANSWER.toLowerCase() || ans === BACKUP_PIN) {
+        document.getElementById('sqErrMsg').style.display = 'none';
+        showPanel('panelReset');
+      } else {
+        document.getElementById('sqErrMsg').style.display = 'block';
+        document.getElementById('sqErrMsg').textContent = '❌ Wrong answer. Try again, or use your backup PIN instead.';
+        document.getElementById('sqAnswer').value = '';
+        document.getElementById('sqAnswer').focus();
+      }
+    }
+    document.getElementById('sqAnswer').addEventListener('keydown', e => { if(e.key==='Enter') checkSecurityAnswer(); });
+
+    function saveNewPassword() {
+      const p1 = document.getElementById('newPw1').value;
+      const p2 = document.getElementById('newPw2').value;
+      document.getElementById('resetErrMsg').style.display = 'none';
+      document.getElementById('resetSuccessMsg').style.display = 'none';
+      if (!p1 || p1.length < 4) {
+        document.getElementById('resetErrMsg').textContent = '❌ Password must be at least 4 characters.';
+        document.getElementById('resetErrMsg').style.display = 'block'; return;
+      }
+      if (p1 !== p2) {
+        document.getElementById('resetErrMsg').textContent = "❌ Passwords don't match.";
+        document.getElementById('resetErrMsg').style.display = 'block'; return;
+      }
+      setPassword(p1);
+      document.getElementById('resetSuccessMsg').style.display = 'block';
+      document.getElementById('newPw1').value = '';
+      document.getElementById('newPw2').value = '';
+      setTimeout(() => showPanel('panelLogin'), 2000);
+    }
+    document.getElementById('newPw1').addEventListener('keydown', e => { if(e.key==='Enter') saveNewPassword(); });
+
+    /* Change Password from inside dashboard */
+    function changePassword() {
+      const cur  = document.getElementById('chpwCurrent').value;
+      const new1 = document.getElementById('chpwNew1').value;
+      const new2 = document.getElementById('chpwNew2').value;
+      const err  = document.getElementById('chpwErr');
+      const suc  = document.getElementById('chpwSuccess');
+      err.style.display = 'none'; suc.style.display = 'none';
+      if (cur !== getPassword()) {
+        err.textContent = '❌ Current password is wrong.'; err.style.display = 'block'; return;
+      }
+      if (!new1 || new1.length < 4) {
+        err.textContent = '❌ New password must be at least 4 characters.'; err.style.display = 'block'; return;
+      }
+      if (new1 !== new2) {
+        err.textContent = "❌ New passwords don't match."; err.style.display = 'block'; return;
+      }
+      setPassword(new1);
+      suc.style.display = 'block';
+      document.getElementById('chpwCurrent').value = '';
+      document.getElementById('chpwNew1').value = '';
+      document.getElementById('chpwNew2').value = '';
+      setTimeout(() => document.getElementById('chpwOverlay').classList.remove('open'), 2000);
+    }
+
+    function logout() { sessionStorage.removeItem('hooket_admin'); location.reload(); }
+    function showDashboard() {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('dashboard').style.display   = 'block';
+      renderStats(); renderOrders(); renderProducts(); renderGallery();
+      buildSwatches();
+    }
+
+    /* ════ PAGE SWITCHING ════ */
+    function switchPage(name, btn) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
+      document.getElementById('page-' + name).classList.add('active');
+      btn.classList.add('active');
+      document.getElementById('orderActions').style.display = name === 'orders' ? 'flex' : 'none';
+      if (name === 'gallery') renderGallery();
+    }
+
+    /* ════ DATA ════ */
+    function getOrders()        { return JSON.parse(localStorage.getItem('hooket_orders')   || '[]'); }
+    function saveOrders(o)      { localStorage.setItem('hooket_orders', JSON.stringify(o)); }
+    function getProducts()      { return JSON.parse(localStorage.getItem('hooket_products') || '[]'); }
+    function saveProducts(p)    { localStorage.setItem('hooket_products', JSON.stringify(p)); }
+    function isBrowse(o)        { return o.type === 'browse'; }
+    function isCustom(o)        { return o.type === 'custom'; }
+
+    function updateOrder(id, patch) {
+      saveOrders(getOrders().map(o => o.id==id ? {...o,...patch} : o));
+      renderStats(); renderOrders();
+    }
+    function deleteOrder(id) {
+      if (!confirm('Delete this order permanently?')) return;
+      saveOrders(getOrders().filter(o => o.id!=id));
+      renderStats(); renderOrders();
+    }
+    function clearDone() {
+      if (!confirm('Remove all Done orders?')) return;
+      saveOrders(getOrders().filter(o => o.status!=='Done'));
+      renderStats(); renderOrders();
+    }
+    function setTotal(id) {
+      const val = parseFloat(document.getElementById('tot_'+id)?.value);
+      if (!val||isNaN(val)) { alert('Enter a valid amount.'); return; }
+      updateOrder(id, { total:val });
+    }
+
+    /* ════ STATS ════ */
+    function renderStats() {
+      const orders  = getOrders();
+      const revenue = orders.filter(o=>o.status==='Done'&&o.total).reduce((s,o)=>s+Number(o.total),0);
+      const defs = [
+        {label:'Total Orders',  num:orders.length,                                      bg:'#FFF8F5',color:'var(--amber)'},
+        {label:'Pending',       num:orders.filter(o=>o.status==='Pending').length,      bg:'#FFF9C4',color:'#b45309'},
+        {label:'In Progress',   num:orders.filter(o=>o.status==='In Progress').length,  bg:'#DBEAFE',color:'#1d4ed8'},
+        {label:'Done',          num:orders.filter(o=>o.status==='Done').length,         bg:'#D1FAE5',color:'#065f46'},
+        {label:'Revenue (Done)',num:'₱'+revenue.toLocaleString(),                       bg:'#FFF3E0',color:'var(--amber)'},
+      ];
+      document.getElementById('statsRow').innerHTML = defs.map(d=>`
+        <div class="stat-card" style="background:${d.bg}">
+          <div class="stat-num" style="color:${d.color}">${d.num}</div>
+          <div class="stat-label">${d.label}</div>
+        </div>`).join('');
+    }
+
+    /* ════ ORDER TABS ════ */
+    function setTab(btn) {
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      renderOrders();
+    }
+
+    /* ════ DEADLINE ════ */
+    function deadlineDisplay(dateStr) {
+      if (!dateStr) return '—';
+      const d    = new Date(dateStr);
+      const diff = Math.ceil((d - new Date()) / 86400000);
+      const fmt  = d.toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});
+      if (diff < 0)  return `<span class="warn">⚠ ${fmt} (overdue!)</span>`;
+      if (diff <= 2) return `<span class="warn">🔥 ${fmt} (${diff}d left)</span>`;
+      return fmt;
+    }
+
+    /* ════ CONTACT ════ */
+    function buildContact(o) {
+      const parts = [];
+      if (o.fb) {
+        const href = o.fb.startsWith('http') ? o.fb : 'https://facebook.com/'+o.fb.replace(/^@/,'');
+        parts.push(`<a href="${href}" target="_blank" style="color:var(--amber);text-decoration:underline">📘 ${o.fb}</a>`);
+      }
+      if (o.ig)    parts.push(`📸 ${o.ig}`);
+      if (o.phone) parts.push(`📞 ${o.phone}`);
+      return parts.length ? parts.join(' &nbsp;|&nbsp; ') : '—';
+    }
+
+    /* ════ RENDER ORDERS ════ */
+    function renderOrders() {
+      const search = (document.getElementById('searchBar')?.value||'').toLowerCase();
+      let orders   = getOrders().reverse();
+      if (currentFilter !== 'all') orders = orders.filter(o => o.type===currentFilter || o.status===currentFilter);
+      if (search) {
+        orders = orders.filter(o => {
+          const itemNames = isBrowse(o) ? (o.items||[]).map(i=>i.name.toLowerCase()).join(' ') : (o.item||o.category||'').toLowerCase();
+          return (o.name||'').toLowerCase().includes(search)
+              || (o.fb||'').toLowerCase().includes(search)
+              || (o.ig||'').toLowerCase().includes(search)
+              || (o.phone||'').toLowerCase().includes(search)
+              || itemNames.includes(search);
+        });
+      }
+
+      const list = document.getElementById('ordersList');
+      if (!orders.length) {
+        list.innerHTML = `<div class="empty-state"><div class="e-icon">📭</div><p>No orders match this filter.</p></div>`;
+        return;
+      }
+
+      const statusClass = {'Pending':'','In Progress':'in-progress','Done':'done','Cancelled':'cancelled'};
+      const badgeClass  = {'Pending':'badge-pending','In Progress':'badge-progress','Done':'badge-done','Cancelled':'badge-cancelled'};
+      const statusIcon  = {'Pending':'⏳','In Progress':'🔧','Done':'✅','Cancelled':'❌'};
+
+      list.innerHTML = orders.map(o => {
+        const typeLabel   = isBrowse(o) ? '🛍 Browse' : isCustom(o) ? '🎨 Custom' : '🛒 Order';
+        const totalNum    = o.total ? '₱'+Number(o.total).toLocaleString() : isCustom(o) ? 'TBD' : '—';
+        const totalQty    = isBrowse(o)&&o.items ? o.items.reduce((s,i)=>s+(i.qty||1),0) : (o.qty||1);
+        const qtyLabel    = `${totalQty} pc${totalQty!==1?'s':''}`;
+
+        let actionBtns = '';
+        if (o.status!=='Done'&&o.status!=='Cancelled') {
+          if (o.status==='Pending') actionBtns += `<button class="btn-progress" onclick="updateOrder(${o.id},{status:'In Progress'})">🔧 Start Making</button>`;
+          actionBtns += `<button class="btn-done" onclick="updateOrder(${o.id},{status:'Done'})">✅ Mark Done</button>`;
+          actionBtns += `<button class="btn-cancel" onclick="updateOrder(${o.id},{status:'Cancelled'})">Cancel</button>`;
+        } else if (o.status==='Done') {
+          actionBtns = `<button class="btn-reopen" onclick="updateOrder(${o.id},{status:'Pending'})">↩ Re-open</button>`;
+        }
+
+        const setTotalHTML = isCustom(o)&&o.status!=='Done' ? `
+          <div class="set-total-wrap">
+            <label>Set Total:</label>
+            <input type="number" id="tot_${o.id}" placeholder="e.g. 350" min="0" value="${o.total||''}" />
+            <button onclick="setTotal(${o.id})">Save</button>
+          </div>` : '';
+
+        const itemsHTML = isBrowse(o)&&o.items?.length ? `
+          <div class="o-items-box">
+            <div class="o-items-title">📋 Order List (${o.items.length} item type${o.items.length!==1?'s':''})</div>
+            ${o.items.map(i=>`
+              <div class="o-item-row">
+                <span class="o-item-emoji">${i.emoji||'🧶'}</span>
+                <span class="o-item-name">${i.name}</span>
+                <span class="o-item-qty">× ${i.qty}</span>
+                <span class="o-item-sub">₱${(i.sub||i.price*i.qty).toLocaleString()}</span>
+              </div>`).join('')}
+            <div class="o-items-total">
+              <span>Total</span>
+              <span class="ot-num">₱${Number(o.total||0).toLocaleString()}</span>
+            </div>
+          </div>` : '';
+
+        return `
+        <div class="o-card ${statusClass[o.status]||''}">
+          <div class="o-header">
+            <div class="o-title-row">
+              <span class="o-emoji">${o.emoji||'🧶'}</span>
+              <div>
+                <div class="o-name">${o.name} &nbsp;<span class="o-type-chip">${typeLabel}</span></div>
+                <div class="o-placed">📅 Placed: ${o.placedAt}</div>
+              </div>
+            </div>
+            <div class="o-right">
+              <span class="badge ${badgeClass[o.status]||'badge-pending'}">${statusIcon[o.status]||'⏳'} ${o.status}</span>
+              <div class="o-total-num">${totalNum}</div>
+              <div class="o-total-sub">${qtyLabel} total</div>
+            </div>
+          </div>
+
+          <div class="o-details">
+            ${!isBrowse(o)?`<div class="o-field"><span class="f-label">${isCustom(o)?'Category':'Item'}</span><span class="f-val">${isCustom(o)?(o.category||'—'):(o.item||'—')}</span></div>`:''}
+            <div class="o-field"><span class="f-label">When Needed</span><span class="f-val">${deadlineDisplay(o.deadline)}</span></div>
+            <div class="o-field"><span class="f-label">Color Notes</span><span class="f-val">${o.color||'—'}</span></div>
+            ${isCustom(o)?`<div class="o-field"><span class="f-label">Size</span><span class="f-val">${o.size||'—'}</span></div>`:''}
+            ${isCustom(o)?`<div class="o-field"><span class="f-label">Budget</span><span class="f-val">${o.budget||'—'}</span></div>`:''}
+            <div class="o-field"><span class="f-label">Contact</span><span class="f-val">${buildContact(o)}</span></div>
+          </div>
+
+          ${itemsHTML}
+          ${isCustom(o)&&o.desc?`<div class="o-notes"><b>Request:</b> ${o.desc}</div>`:''}
+          ${isCustom(o)&&o.refImages&&o.refImages.length?`
+            <div class="ref-photos-box">
+              <span class="ref-photos-label">📷 Reference Photos (${o.refImages.length})</span>
+              <div class="ref-photos-grid">
+                ${o.refImages.map((src,i)=>`
+                  <div class="ref-photo-thumb" onclick="openRefLightbox('${src}','Photo ${i+1} of ${o.refImages.length}')">
+                    <img src="${src}" alt="Ref ${i+1}" />
+                  </div>`).join('')}
+              </div>
+            </div>` : ''}
+          ${o.notes?`<div class="o-notes"><b>Comments:</b> ${o.notes}</div>`:''}
+          ${setTotalHTML}
+
+          <div class="o-actions">
+            ${actionBtns}
+            <button class="btn-del" onclick="deleteOrder(${o.id})">🗑 Delete</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    /* ════ RENDER PRODUCTS ════ */
+    function renderProducts() {
+      const products = getProducts();
+      const grid     = document.getElementById('productsGrid');
+      if (!products.length) {
+        grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="e-icon">🧶</div><p>No products yet. Add your first one!</p></div>`;
+        return;
+      }
+      grid.innerHTML = products.map(p => {
+        const imgHTML = p.image
+          ? `<img src="${p.image}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;" />`
+          : `${p.emoji||'🧶'}`;
+        const imgStyle = p.image ? '' : `background:${p.bg||'#FFF0F0'};font-size:2rem;display:flex;align-items:center;justify-content:center;`;
+        return `
+        <div class="prod-card">
+          <div class="prod-top">
+            <div class="prod-emoji-big" style="${imgStyle}overflow:hidden;">${imgHTML}</div>
+            <div class="prod-info">
+              <h3>${p.name}</h3>
+              <div class="prod-price">₱${Number(p.price).toLocaleString()}</div>
+            </div>
+          </div>
+          <div class="prod-desc">${p.desc}</div>
+          <div class="prod-actions">
+            <button class="btn-edit"   onclick="openProductForm(${p.id})">✏️ Edit</button>
+            <button class="btn-remove" onclick="removeProduct(${p.id})">🗑 Remove</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    /* ════ PRODUCT FORM ════ */
+    let selectedBg = '#FFE4E8';
+
+    function buildSwatches() {
+      document.getElementById('bgSwatches').innerHTML = BG_COLORS.map(c => `
+        <div class="swatch ${c===selectedBg?'selected':''}" style="background:${c}" title="${c}"
+             onclick="selectBg('${c}')"></div>`).join('');
+    }
+    function selectBg(color) {
+      selectedBg = color;
+      document.getElementById('pBg').value = color;
+      buildSwatches();
+    }
+
+    /* Image upload handlers */
+    function handleImageUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        const data = ev.target.result;
+        document.getElementById('pImgData').value = data;
+        document.getElementById('imgPreviewEl').src = data;
+        document.getElementById('imgPreviewEl').style.display = 'block';
+        document.getElementById('imgUploadPlaceholder').style.display = 'none';
+        document.getElementById('removeImgBtn').style.display = 'block';
+        document.getElementById('imgUploadArea').classList.add('has-image');
+      };
+      reader.readAsDataURL(file);
+    }
+    function removeImage(e) {
+      e.stopPropagation();
+      document.getElementById('pImgData').value = '';
+      document.getElementById('pImgFile').value = '';
+      document.getElementById('imgPreviewEl').src = '';
+      document.getElementById('imgPreviewEl').style.display = 'none';
+      document.getElementById('imgUploadPlaceholder').style.display = 'flex';
+      document.getElementById('removeImgBtn').style.display = 'none';
+      document.getElementById('imgUploadArea').classList.remove('has-image');
+    }
+    function setImagePreview(src) {
+      if (src) {
+        document.getElementById('pImgData').value = src;
+        document.getElementById('imgPreviewEl').src = src;
+        document.getElementById('imgPreviewEl').style.display = 'block';
+        document.getElementById('imgUploadPlaceholder').style.display = 'none';
+        document.getElementById('removeImgBtn').style.display = 'block';
+        document.getElementById('imgUploadArea').classList.add('has-image');
+      } else {
+        removeImage({ stopPropagation:()=>{} });
+      }
+    }
+
+    function openProductForm(id) {
+      const isEdit = !!id;
+      document.getElementById('pmodalTitle').textContent = isEdit ? '✏️ Edit Product' : '＋ Add New Product';
+      document.getElementById('pEditId').value = id || '';
+      // Reset image area first
+      removeImage({ stopPropagation:()=>{} });
+
+      if (isEdit) {
+        const p = getProducts().find(p => p.id == id);
+        if (!p) return;
+        document.getElementById('pName').value  = p.name;
+        document.getElementById('pEmoji').value = p.emoji || '';
+        document.getElementById('pPrice').value = p.price;
+        document.getElementById('pDesc').value  = p.desc;
+        document.getElementById('pBg').value    = p.bg || '#FFE4E8';
+        selectedBg = p.bg || '#FFE4E8';
+        if (p.image) setImagePreview(p.image);
+      } else {
+        document.getElementById('pName').value  = '';
+        document.getElementById('pEmoji').value = '';
+        document.getElementById('pPrice').value = '';
+        document.getElementById('pDesc').value  = '';
+        document.getElementById('pBg').value    = '#FFE4E8';
+        selectedBg = '#FFE4E8';
+      }
+      buildSwatches();
+      document.getElementById('pmodalOverlay').classList.add('open');
+    }
+
+    function closeProductForm() {
+      document.getElementById('pmodalOverlay').classList.remove('open');
+    }
+
+    function saveProduct() {
+      const name   = document.getElementById('pName').value.trim();
+      const emoji  = document.getElementById('pEmoji').value.trim() || '🧶';
+      const price  = parseFloat(document.getElementById('pPrice').value);
+      const desc   = document.getElementById('pDesc').value.trim();
+      const bg     = document.getElementById('pBg').value.trim() || selectedBg || '#FFE4E8';
+      const image  = document.getElementById('pImgData').value || '';
+      const editId = document.getElementById('pEditId').value;
+
+      if (!name || !price || !desc) { showToast('Please fill in all required fields.'); return; }
+
+      let products = getProducts();
+      if (editId) {
+        products = products.map(p => p.id==editId ? {...p, name, emoji, price, desc, bg, image} : p);
+        showToast('✅ Product updated!');
+      } else {
+        products.push({ id:Date.now(), name, emoji, price, desc, bg, image });
+        showToast('✅ New product added to your shop!');
+      }
+      saveProducts(products);
+      closeProductForm();
+      renderProducts();
+    }
+
+    function removeProduct(id) {
+      const p = getProducts().find(p => p.id == id);
+      if (!confirm(`Remove "${p?.name}" from the shop?`)) return;
+      saveProducts(getProducts().filter(p => p.id != id));
+      renderProducts();
+      showToast('Product removed.');
+    }
+
+    /* ════ EXPORT CSV ════ */
+    function exportCSV() {
+      const orders = getOrders();
+      if (!orders.length) { alert('No orders to export.'); return; }
+      const headers = ['ID','Type','Items','Name','FB','IG','Phone','Color','Size','Qty','Total','Deadline','Placed At','Status','Notes'];
+      const rows = orders.map(o => {
+        const itemSummary = isBrowse(o)&&o.items ? o.items.map(i=>`${i.name} x${i.qty}`).join(' | ') : isCustom(o)?(o.category||''):(o.item||'');
+        return [o.id,o.type,itemSummary,o.name,o.fb||'',o.ig||'',o.phone||'',o.color||'',o.size||'',o.qty||1,o.total||'',o.deadline||'',o.placedAt||'',o.status,(o.notes||'').replace(/,/g,' ')];
+      });
+      const csv = [headers,...rows].map(r=>r.map(v=>`"${v||''}"`).join(',')).join('\n');
+      const url = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+      Object.assign(document.createElement('a'),{href:url,download:'hooket_orders.csv'}).click();
+      URL.revokeObjectURL(url);
+    }
+
+    /* ════ TOAST ════ */
+    function showToast(msg) {
+      const t = document.createElement('div');
+      t.className = 'toast'; t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(()=>t.classList.add('show'),10);
+      setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),400);},3500);
+    }
+
+
+    /* ════ REFERENCE PHOTO LIGHTBOX ════ */
+    function openRefLightbox(src, caption) {
+      document.getElementById('refLightboxImg').src = src;
+      document.getElementById('refLbCaption').textContent = caption;
+      document.getElementById('refLightbox').classList.add('open');
+    }
+    function closeRefLightbox() {
+      document.getElementById('refLightbox').classList.remove('open');
+      document.getElementById('refLightboxImg').src = '';
+    }
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeRefLightbox();
+    });
+
+
+    /* ════ GALLERY MANAGEMENT ════ */
+    function getGallery()    { return JSON.parse(localStorage.getItem('hooket_gallery') || '[]'); }
+    function saveGallery(g)  { localStorage.setItem('hooket_gallery', JSON.stringify(g)); }
+
+    function renderGallery() {
+      const photos = getGallery();
+      const grid   = document.getElementById('galGrid');
+      if (!grid) return;
+      if (!photos.length) {
+        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="e-icon">📷</div><p>No photos yet. Add your first one!</p></div>';
+        return;
+      }
+      grid.innerHTML = photos.map(p => `
+        <div class="gal-card">
+          <img class="gal-card-img" src="${p.image}" alt="${p.label||''}"
+               onclick="openAdminLb('${p.image}','${(p.label||'').replace(/'/g,"\'")} ${p.tag?'· '+p.tag:''}')" />
+          <div class="gal-card-body">
+            <div class="gal-card-label">${p.label||'Untitled'}</div>
+            ${p.tag ? `<span class="gal-card-tag">${p.tag}</span>` : ''}
+            <div class="gal-card-actions">
+              <button class="btn-edit"   onclick="openGalForm(${p.id})">✏️ Edit</button>
+              <button class="btn-remove" onclick="deleteGalPhoto(${p.id})">🗑 Delete</button>
+            </div>
+          </div>
+        </div>`).join('');
+    }
+
+    /* Gallery form */
+    function openGalForm(id) {
+      const isEdit = !!id;
+      document.getElementById('gmodalTitle').textContent = isEdit ? '✏️ Edit Photo' : '＋ Add Photo';
+      document.getElementById('gEditId').value  = id || '';
+      removeGalImg();
+      document.getElementById('gLabel').value  = '';
+      document.getElementById('gTag').value    = '';
+      if (isEdit) {
+        const p = getGallery().find(p => p.id == id);
+        if (!p) return;
+        document.getElementById('gLabel').value = p.label || '';
+        document.getElementById('gTag').value   = p.tag   || '';
+        if (p.image) {
+          document.getElementById('gImgData').value    = p.image;
+          document.getElementById('gImgPreview').src   = p.image;
+          document.getElementById('gImgPreview').style.display = 'block';
+          document.getElementById('gImgUpload').classList.add('has-img');
+          document.getElementById('gRemoveImg').style.display = 'inline-block';
+        }
+      }
+      document.getElementById('gmodalOverlay').classList.add('open');
+    }
+    function closeGalForm() {
+      document.getElementById('gmodalOverlay').classList.remove('open');
+    }
+    function handleGalImg(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        document.getElementById('gImgData').value           = ev.target.result;
+        document.getElementById('gImgPreview').src          = ev.target.result;
+        document.getElementById('gImgPreview').style.display= 'block';
+        document.getElementById('gImgUpload').classList.add('has-img');
+        document.getElementById('gRemoveImg').style.display = 'inline-block';
+      };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    }
+    function removeGalImg() {
+      document.getElementById('gImgData').value            = '';
+      document.getElementById('gImgFile').value            = '';
+      document.getElementById('gImgPreview').src           = '';
+      document.getElementById('gImgPreview').style.display = 'none';
+      document.getElementById('gImgUpload').classList.remove('has-img');
+      document.getElementById('gRemoveImg').style.display  = 'none';
+    }
+    function saveGalPhoto() {
+      const image  = document.getElementById('gImgData').value;
+      const label  = document.getElementById('gLabel').value.trim();
+      const tag    = document.getElementById('gTag').value.trim();
+      const editId = document.getElementById('gEditId').value;
+      if (!image) { showToast('Please upload a photo first.'); return; }
+      if (!label) { showToast('Please add a label/title.'); return; }
+      let photos = getGallery();
+      if (editId) {
+        photos = photos.map(p => p.id == editId ? {...p, label, tag, image} : p);
+        showToast('✅ Photo updated!');
+      } else {
+        photos.unshift({ id: Date.now(), image, label, tag });
+        showToast('✅ Photo added to gallery!');
+      }
+      saveGallery(photos);
+      closeGalForm();
+      renderGallery();
+    }
+    function deleteGalPhoto(id) {
+      const p = getGallery().find(p => p.id == id);
+      if (!confirm('Delete "' + (p?.label||'this photo') + '" from gallery?')) return;
+      saveGallery(getGallery().filter(p => p.id != id));
+      renderGallery();
+      showToast('Photo deleted.');
+    }
+
+    /* Admin lightbox */
+    function openAdminLb(src, info) {
+      document.getElementById('gLbAdminImg').src            = src;
+      document.getElementById('gLbAdminInfo').textContent   = info;
+      document.getElementById('gLbAdmin').classList.add('open');
+    }
+    function closeAdminLb() {
+      document.getElementById('gLbAdmin').classList.remove('open');
+    }
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { closeAdminLb(); closeRefLightbox(); }
+    });
+
+    /* ════ INIT ════ */
+    if (sessionStorage.getItem('hooket_admin')==='1') showDashboard();
+    else document.getElementById('loginScreen').style.display = 'flex';
+  </script>
+</body>
+</html>
