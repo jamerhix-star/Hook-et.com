@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel — Hook Et</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0"></script>
+  <style>
+    body { background: #f5f5f5; }
+    .admin-container { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+    .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+    .admin-header h1 { margin: 0; font-family: 'Fredoka One', cursive; }
+    .btn-add-product { background: var(--sage); color: #fff; border: none; border-radius: 50px; padding: 0.8rem 1.8rem; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.95rem; cursor: pointer; transition: 0.15s; }
+    .btn-add-product:hover { filter: brightness(0.92); }
+    .products-table { background: #fff; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); margin-top: 1.5rem; }
+    .products-table table { width: 100%; border-collapse: collapse; }
+    .products-table th { background: var(--cream); padding: 1rem; text-align: left; font-weight: 800; color: var(--charcoal); border-bottom: 2px solid var(--peach); }
+    .products-table td { padding: 1rem; border-bottom: 1px solid #eee; }
+    .products-table tbody tr:hover { background: #fafafa; }
+    .products-table .emoji-col { font-size: 1.5rem; width: 40px; }
+    .products-table .name-col { font-weight: 700; }
+    .products-table .price-col { font-family: 'Fredoka One', cursive; color: var(--amber); }
+    .products-table .action-btns { display: flex; gap: 0.5rem; }
+    .btn-edit, .btn-delete { border: none; border-radius: 6px; padding: 0.5rem 1rem; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: 0.15s; font-family: 'Nunito', sans-serif; }
+    .btn-edit { background: var(--blush); color: var(--charcoal); }
+    .btn-edit:hover { background: var(--amber); color: #fff; }
+    .btn-delete { background: #fee2e2; color: #dc2626; }
+    .btn-delete:hover { background: #dc2626; color: #fff; }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(45, 32, 23, 0.45); backdrop-filter: blur(4px); z-index: 500; align-items: center; justify-content: center; padding: 1rem; overflow-y: auto; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: #fff; border-radius: var(--radius); padding: 2.5rem; max-width: 600px; width: 100%; position: relative; box-shadow: 0 20px 50px rgba(45, 32, 23, 0.22); animation: popIn 0.2s ease; max-height: 92vh; overflow-y: auto; }
+    @keyframes popIn { from { transform: scale(0.93); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .modal-close { position: absolute; top: 1rem; right: 1rem; background: var(--blush); border: none; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; font-size: 1rem; z-index: 1; }
+    .modal h2 { margin-top: 0; margin-bottom: 1.5rem; font-family: 'Fredoka One', cursive; }
+    .form-group { margin-bottom: 1.2rem; display: flex; flex-direction: column; gap: 0.3rem; }
+    .form-group label { font-weight: 800; font-size: 0.9rem; color: var(--charcoal); }
+    .form-group input, .form-group textarea { border: 2px solid var(--peach); border-radius: var(--radius-sm); padding: 0.8rem; font-family: 'Nunito', sans-serif; font-size: 0.95rem; outline: none; transition: border-color 0.15s; }
+    .form-group input:focus, .form-group textarea:focus { border-color: var(--amber); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .modal-actions { display: flex; gap: 0.8rem; justify-content: flex-end; margin-top: 1.5rem; }
+    .btn-cancel, .btn-save { border: none; border-radius: 6px; padding: 0.8rem 1.6rem; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.9rem; cursor: pointer; transition: 0.15s; }
+    .btn-cancel { background: #e5e7eb; color: var(--charcoal); }
+    .btn-cancel:hover { background: #d1d5db; }
+    .btn-save { background: var(--sage); color: #fff; }
+    .btn-save:hover { filter: brightness(0.92); }
+    .empty-state { text-align: center; padding: 3rem 1rem; }
+    .empty-state div { font-size: 3rem; margin-bottom: 0.5rem; }
+    .empty-state p { color: var(--muted); margin-bottom: 1.5rem; }
+    .loading { text-align: center; padding: 2rem; color: var(--muted); }
+    .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--charcoal); color: #fff; padding: 0.9rem 1.8rem; border-radius: 50px; font-weight: 700; font-size: 0.85rem; z-index: 1000; opacity: 0; transition: 0.3s; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .image-preview { margin-top: 0.5rem; width: 100%; max-height: 200px; border-radius: var(--radius-sm); object-fit: cover; display: none; }
+    .color-input { width: 100%; height: 50px; padding: 2px; }
+    .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+    @media(max-width: 768px) { .form-row { grid-template-columns: 1fr; } .form-row-3 { grid-template-columns: 1fr; } .admin-header { flex-direction: column; align-items: flex-start; } }
+  </style>
+</head>
+<body>
+
+  <div class="admin-container">
+    <div class="admin-header">
+      <h1>🧶 Admin Panel</h1>
+      <button class="btn-add-product" onclick="openProductModal()">+ Add New Product</button>
+    </div>
+
+    <div class="products-table" id="productsContainer">
+      <div class="loading">Loading products...</div>
+    </div>
+  </div>
+
+  <!-- PRODUCT MODAL -->
+  <div class="modal-overlay" id="productModal">
+    <div class="modal">
+      <button class="modal-close" onclick="closeProductModal()">✕</button>
+      <h2 id="modalTitle">Add New Product</h2>
+      <form id="productForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Product Name *</label>
+            <input type="text" id="productName" placeholder="e.g. Teddy Bear" required />
+          </div>
+          <div class="form-group">
+            <label>Emoji 🎨</label>
+            <input type="text" id="productEmoji" placeholder="e.g. 🧸" maxlength="2" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="productDesc" rows="2" placeholder="Brief description or size info..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Price (₱) *</label>
+            <input type="number" id="productPrice" placeholder="e.g. 250" min="0" step="10" required />
+          </div>
+          <div class="form-group">
+            <label>Background Color</label>
+            <input type="color" id="productBg" class="color-input" value="#FFE4E8" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Image URL (optional)</label>
+          <input type="url" id="productImageUrl" placeholder="https://example.com/image.jpg" />
+          <img id="imagePreview" class="image-preview" alt="Preview" />
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" onclick="closeProductModal()">Cancel</button>
+          <button type="submit" class="btn-save">Save Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    let products = [];
+    let editingId = null;
+
+    // Load products
+    async function loadProducts() {
+      try {
+        const { data, error } = await supabaseClient
+          .from('product')
+          .select('*')
+          .order('id', { ascending: true });
+        
+        if (error) throw error;
+        products = data || [];
+        renderTable();
+      } catch (error) {
+        console.error('Error loading products:', error);
+        showToast('Error loading products');
+      }
+    }
+
+    function renderTable() {
+      const container = document.getElementById('productsContainer');
+      if (!products.length) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div>🧶</div>
+            <p>No products yet. Add your first product to get started!</p>
+          </div>`;
+        return;
+      }
+      container.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th style="width:50px">Emoji</th>
+              <th>Product Name</th>
+              <th style="width:100px">Price</th>
+              <th style="width:150px">Description</th>
+              <th style="width:100px">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${products.map(p => `
+              <tr>
+                <td class="emoji-col">${p.emoji || '🧶'}</td>
+                <td class="name-col">${p.name}</td>
+                <td class="price-col">₱${Number(p.price).toLocaleString()}</td>
+                <td>${(p.description || '—').substring(0, 30)}${(p.description || '').length > 30 ? '...' : ''}</td>
+                <td class="action-btns">
+                  <button class="btn-edit" onclick="editProduct(${p.id})">Edit</button>
+                  <button class="btn-delete" onclick="deleteProduct(${p.id})">Delete</button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`;
+    }
+
+    async function editProduct(id) {
+      editingId = id;
+      const p = products.find(x => x.id === id);
+      if (!p) return;
+      document.getElementById('modalTitle').textContent = 'Edit Product';
+      document.getElementById('productName').value = p.name;
+      document.getElementById('productEmoji').value = p.emoji || '';
+      document.getElementById('productDesc').value = p.description || '';
+      document.getElementById('productPrice').value = p.price;
+      document.getElementById('productBg').value = p.bg || '#FFE4E8';
+      document.getElementById('productImageUrl').value = p.image_url || '';
+      if (p.image_url) {
+        const preview = document.getElementById('imagePreview');
+        preview.src = p.image_url;
+        preview.style.display = 'block';
+      }
+      document.getElementById('productModal').classList.add('open');
+    }
+
+    function openProductModal() {
+      editingId = null;
+      document.getElementById('modalTitle').textContent = 'Add New Product';
+      document.getElementById('productForm').reset();
+      document.getElementById('imagePreview').style.display = 'none';
+      document.getElementById('productBg').value = '#FFE4E8';
+      document.getElementById('productModal').classList.add('open');
+    }
+
+    function closeProductModal() {
+      document.getElementById('productModal').classList.remove('open');
+      editingId = null;
+    }
+
+    document.getElementById('productForm').onsubmit = async function(e) {
+      e.preventDefault();
+      const data = {
+        name: document.getElementById('productName').value.trim(),
+        emoji: document.getElementById('productEmoji').value.trim(),
+        description: document.getElementById('productDesc').value.trim(),
+        price: parseFloat(document.getElementById('productPrice').value),
+        bg: document.getElementById('productBg').value,
+        image_url: document.getElementById('productImageUrl').value.trim() || null
+      };
+
+      if (!data.name || !data.price) {
+        showToast('Please fill in all required fields');
+        return;
+      }
+
+      try {
+        if (editingId) {
+          const { error } = await supabaseClient
+            .from('product')
+            .update(data)
+            .eq('id', editingId);
+          if (error) throw error;
+          showToast('Product updated! ✨');
+        } else {
+          const { error } = await supabaseClient
+            .from('product')
+            .insert([data]);
+          if (error) throw error;
+          showToast('Product added! 🧸');
+        }
+        closeProductModal();
+        loadProducts();
+      } catch (error) {
+        console.error('Error saving product:', error);
+        showToast('Error saving product');
+      }
+    };
+
+    async function deleteProduct(id) {
+      if (!confirm('Are you sure you want to delete this product?')) return;
+      try {
+        const { error } = await supabaseClient
+          .from('product')
+          .delete()
+          .eq('id', id);
+        if (error) throw error;
+        showToast('Product deleted 🗑️');
+        loadProducts();
+      } catch (error) {
+        console.error('Error deleting product:', error);
+        showToast('Error deleting product');
+      }
+    }
+
+    // Image preview
+    document.getElementById('productImageUrl').addEventListener('change', function() {
+      const url = this.value.trim();
+      const preview = document.getElementById('imagePreview');
+      if (url) {
+        preview.src = url;
+        preview.onload = () => preview.style.display = 'block';
+        preview.onerror = () => {
+          preview.style.display = 'none';
+          showToast('Invalid image URL');
+        };
+      } else {
+        preview.style.display = 'none';
+      }
+    });
+
+    document.getElementById('productModal').onclick = (e) => {
+      if (e.target === document.getElementById('productModal'))
+        closeProductModal();
+    };
+
+    function showToast(msg) {
+      const t = document.createElement('div');
+      t.className = 'toast';
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.classList.add('show'), 10);
+      setTimeout(() => {
+        t.classList.remove('show');
+        setTimeout(() => t.remove(), 400);
+      }, 3000);
+    }
+
+    // Load on page load
+    loadProducts();
+  </script>
+</body>
+</html>
